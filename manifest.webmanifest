@@ -18,5 +18,7 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "orientation": "landscape",
+  "id": "./index.html"
 }
