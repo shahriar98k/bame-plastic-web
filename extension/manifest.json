@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "বামে প্লাস্টিক",
+  "version": "1.0.0",
+  "description": "শ্রেষ্ঠ চ্যাড দ্বারা নির্মিত চ্যাডবাজির সিমুলেশন",
+  "action": { "default_title": "বামে প্লাস্টিক খেলুন" },
+  "background": { "service_worker": "background.js" },
+  "host_permissions": ["https://shahriar98k.github.io/*"],
+  "icons": { "192": "game/icons/icon192.png", "512": "game/icons/icon512.png" }
+}

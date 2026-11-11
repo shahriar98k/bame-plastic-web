@@ -1,0 +1,24 @@
+name: Build Chrome extension
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack extension (live site + offline copy)
+        run: |
+          mkdir -p pack/game
+          cp extension/manifest.json extension/background.js pack/
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'extension' --exclude 'supabase' --exclude 'README.md' ./ pack/game/
+          (cd pack && zip -qr ../BamePlastic-Chrome-Extension.zip .)
+      - name: Publish as a Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete extension -y --cleanup-tag || true
+          gh release create extension BamePlastic-Chrome-Extension.zip --title "Chrome extension (latest)" --notes "Unzip, then Chrome > Extensions > Developer mode > Load unpacked. The extension opens the live game, so it updates by itself."

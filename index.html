@@ -70,12 +70,23 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block;filter:cont
 #st .bot{gap:6px}#st .chips span{font-size:11px;padding:2px 9px}#st .keys,#st .cr{display:none}
 #vs button{padding:4px 9px;font-size:12px}
 #un{padding:8px 12px;font-size:17px}#go{padding:8px 28px;font-size:18px}}
+#lbo{font:inherit;font-weight:700;font-size:16px;padding:8px 22px;border:2px solid #ffd60a;border-radius:14px;background:rgba(255,214,10,.12);color:#ffd60a}
+#lbp{position:fixed;inset:0;z-index:70;background:rgba(10,10,12,.86);display:none;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#lbp .paper{max-width:560px;margin:calc(var(--st) + 10px) auto 20px;background:#f4ecd8;color:#1d1a14;border-radius:6px;padding:14px 16px 18px;box-shadow:0 8px 30px #000a;font-weight:500}
+#lbp h2{margin:0 0 2px;font-size:24px;line-height:1.15;border-bottom:3px double #1d1a14;padding-bottom:6px}
+#lbp .sub{font-size:12px;opacity:.7;margin:6px 0 0}
+#lbp table{width:100%;border-collapse:collapse;font-size:15px}#lbp td{padding:4px 2px;border-bottom:1px dotted #8a7f66}#lbp td:last-child{text-align:right;font-weight:700}
+#lbp .tabs{display:flex;gap:6px;margin:10px 0 4px}#lbp .tabs button{flex:1;font:inherit;font-weight:700;padding:7px;border:2px solid #1d1a14;background:transparent;color:#1d1a14;border-radius:8px}#lbp .tabs button.on{background:#1d1a14;color:#f4ecd8}
+#lbp .pl{font-style:italic;font-size:13px;margin:4px 0 6px}
+#lbp .me{background:#ffe08a}
+#lbp .again{display:block;width:100%;margin-top:12px;font:inherit;font-weight:700;font-size:19px;padding:12px;border:0;border-radius:12px;background:#f2b705;color:#111}
+@media (max-height:520px){#lbo{padding:4px 16px;font-size:13px}}
 #upd{position:fixed;left:50%;bottom:calc(var(--sb) + 8px);transform:translateX(-50%);z-index:100000;background:#f2b705;color:#111;border-radius:999px;padding:8px 14px;font-weight:700;font-size:14px;display:none;gap:8px;align-items:center;box-shadow:0 4px 16px #0008}
 #upd button{font:inherit;font-weight:700;border:0;border-radius:999px;padding:5px 12px;background:#111;color:#f2b705}
-</style></head><body class="pre"><canvas id="g"></canvas><div id="vg"></div><div id="ts"></div><div id="sc"></div>
-<div id="st"><div class="top"><div class="logo">বামে প্লাস্টিক</div><div class="tag">ঢাকার রাস্তায় বাস চালানোর সিমুলেটর</div></div>
+</style></head><body class="pre"><canvas id="g"></canvas><div id="vg"></div><div id="ts"></div><div id="sc"></div><div id="lbp"></div>
+<div id="st"><div class="top"><div class="logo">বামে প্লাস্টিক</div><div class="tag">শ্রেষ্ঠ চ্যাড দ্বারা নির্মিত চ্যাডবাজির সিমুলেশন</div></div>
 <div class="mid"><div id="banter"></div></div>
-<div class="bot"><div id="vs"></div><div class="chips"><span id="c1"></span><span id="c2"></span><span id="c3"></span></div><input id="un" maxlength="24" placeholder="আপনার নাম লিখুন" autocomplete="off"><button id="go">চালু করুন ▶</button><div class="keys">▲/W গ্যাস · স্পেস ব্রেক · ▼/S ব্রেক-পিছনে · শিফট টান · H হর্ন · C ক্যামেরা · N রাত-দিন</div><div class="cr">ম্যাপ © OpenStreetMap contributors (ODbL) · <a href="https://shahriar98k.github.io">নির্মাতা: Shahriar Kamal</a></div></div></div>
+<div class="bot"><div id="vs"></div><div class="chips"><span id="c1"></span><span id="c2"></span><span id="c3"></span></div><input id="un" maxlength="24" placeholder="আপনার নাম লিখুন" autocomplete="off"><button id="go">চালু করুন ▶</button><button id="lbo">🏆 লিডারবোর্ড</button><div class="keys">▲/W গ্যাস · স্পেস ব্রেক · ▼/S ব্রেক-পিছনে · শিফট টান · H হর্ন · C ক্যামেরা · N রাত-দিন</div><div class="cr">ম্যাপ © OpenStreetMap contributors (ODbL) · <a href="https://shahriar98k.github.io">নির্মাতা: Shahriar Kamal</a></div></div></div>
 <div class="p" id="rn">রাস্তা: —</div><div class="p" id="ln"></div><div class="p" id="ob" style="display:none"><span id="oba" style="display:inline-block;color:#6ee7b7">▲</span> <span id="obt"></span></div><canvas id="mm" width="300" height="300"></canvas><div class="p" id="tr"></div>
 <div id="gg"><span id="gr">N</span><div id="gs">০</div><div id="gu">কিমি/ঘ</div><div id="gb"><i id="gf"></i></div><div id="fl"></div></div>
 <button class="b" id="bE">🏁</button><button class="b" id="bN">🌙</button><button class="b" id="bC">📷</button><button class="b" id="bH">📣</button>
