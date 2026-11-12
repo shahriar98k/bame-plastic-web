@@ -16,3 +16,7 @@ P.innerHTML=h;P.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b
 function load(){const t=tab;draw();if(!BPNET.enabled)return;const c=C[t];if(c&&c.done&&Date.now()-c.t<15000)return;C[t]={rows:c?c.rows:null,t:Date.now()};BPNET.top(t).then(r=>{C[t]={rows:r,t:Date.now(),done:1};if(P.style.display==='block'&&tab===t)draw()})}
 B.onclick=()=>{P.style.display='block';P.scrollTop=0;load()};
 B.addEventListener('touchend',()=>{try{document.getElementById('un').blur()}catch(e){}},{passive:true})})();
+
+/* map choice: Dhaka or Kaptai (the map is built when the page loads, so choosing the other one reloads it) */
+(function(){const B=document.querySelectorAll('#mp button');if(!B.length)return;const cur=window.BPMAP==='k'?'k':'d';
+B.forEach(b=>{if(b.dataset.m===cur)b.classList.add('on');b.onclick=()=>{if(b.dataset.m===cur)return;try{BPS.set('bp_map',b.dataset.m)}catch(e){}location.reload()}})})();

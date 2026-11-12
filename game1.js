@@ -7,6 +7,8 @@ const BNW={road:'রোড',rd:'রোড',avenue:'এভিনিউ',ave:'এ�
 function bnName(n){if(!n||/[\u0980-\u09FF]/.test(n))return n;const t=n.trim();if(BNP[t])return BNP[t];const dg=x=>x.replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);const out=t.replace(/[A-Za-z]+(?:[-'][A-Za-z]+)*|\d+/g,w=>{if(/^\d+$/.test(w))return dg(w);const k=w.toLowerCase();if(BNW[k]!==undefined)return BNW[k];if(k.indexOf('-')>0){return k.split('-').map(z=>BNW[z]!==undefined?BNW[z]:z.charAt(0).toUpperCase()+z.slice(1)).join('-')}return w});return out.replace(/\s+/g,' ').trim()}
 if(window.__PK)PK=window.__PK;if(!PK&&EP)PK=EP;
 if(PK){D.x=PK.r||[];if(PK.m&&PK.m.length&&PK.m[0].length>20)D.m=PK.m;if(PK.s&&PK.s.length)D.s=PK.s}
+/* Kaptai map: replaces the Dhaka data before anything is built */
+if(window.BPMAP==='k'&&window.KAP){window.KMODE=1;D.r.length=0;D.b.length=0;for(const r of KAP.r)D.r.push(r);for(const b of KAP.b)D.b.push(b);D.m=[];D.s=[];D.x=[]}
 for(const r of D.r)if(r[2])r[2]=bnName(r[2]);for(const r of(D.x||[]))if(r[2])r[2]=bnName(r[2]);
 /* metro corridor: round the sharp turn, add the missing road piece, give the road under the metro room for lanes */
 (function(){const M0=D.m&&D.m.length?D.m.reduce((a,b)=>b.length>a.length?b:a,D.m[0]):null;if(!M0||M0.length<40)return;
@@ -60,6 +62,56 @@ function setNight(n){NIGHT=n;skyCols(n);sc.fog.color.setHex(n?0x29335c:0xcfe0ee)
 
 const GSTEP=60000/7600,gr=new THREE.Mesh(new THREE.PlaneGeometry(3200,3200),new THREE.MeshLambertMaterial({color:0xffffff,map:TXG,polygonOffset:true,polygonOffsetFactor:3,polygonOffsetUnits:3}));gr.rotation.x=-Math.PI/2;sc.add(gr);
 const PIL=[],CARTS=[],OBS=[],XBB=[],HIT={t:'',o:null};
+
+/* ===== Kaptai: lake, jetty pier, boats, Kaptai Dhaba, roadside ads ===== */
+const tx=(w,h,fn)=>tex(fn,w,h);let kWB=null;function kWater(x,z){if(!kWB)return 0;for(const w of kWB){if(x>w.x0&&x<w.x1&&z>w.z0&&z<w.z1&&inPoly(x,z,w.p))return 1}return 0}
+const KFF='"Hind Siliguri",sans-serif';
+function kSign(w,h,bg,lines,fg){return new THREE.MeshBasicMaterial({map:tx(w,h,(c,W,H)=>{c.fillStyle=bg;c.fillRect(0,0,W,H);c.strokeStyle='#fff';c.lineWidth=H*.03;c.strokeRect(H*.05,H*.05,W-H*.1,H*.9);c.fillStyle=fg||'#fff';c.textAlign='center';c.textBaseline='middle';let y=H*.5-(lines.length-1)*.5*0;const tot=lines.reduce((a,l)=>a+l[1],0);let yy=(H-tot)/2;for(const l of lines){c.font='bold '+l[1]*.8+'px '+KFF;c.fillText(l[0],W/2,yy+l[1]/2,W*.94);yy+=l[1]}}),transparent:false})}
+if(window.KMODE){
+kWB=KAP.w.map(p=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<p.length;i+=2){x0=Math.min(x0,p[i]);x1=Math.max(x1,p[i]);z0=Math.min(z0,p[i+1]);z1=Math.max(z1,p[i+1])}return{p,x0,x1,z0,z1}});
+gr.material.color.setHex(0x86b36e);
+const wm=new THREE.MeshLambertMaterial({color:0x2f7fae,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+for(const w of kWB){const pts=[];for(let i=0;i<w.p.length;i+=2)pts.push(new THREE.Vector2(w.p[i],w.p[i+1]));const idx=THREE.ShapeUtils.triangulateShape(pts,[]);const pos=new Float32Array(pts.length*3),nr=new Float32Array(pts.length*3);pts.forEach((q,i)=>{pos[i*3]=q.x;pos[i*3+1]=.03;pos[i*3+2]=q.y;nr[i*3+1]=1});const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nr,3));g.setIndex(idx.flat());const m=new THREE.Mesh(g,wm);m.receiveShadow=true;sc.add(m)}
+const BX=(P,w,h,d,x,y,z,mat,sh)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);if(sh!==0)m.castShadow=true;m.receiveShadow=true;P.add(m);return m};
+const wood=new THREE.MeshLambertMaterial({color:0x8a5a2b}),dark=new THREE.MeshLambertMaterial({color:0x4a3320});
+/* jetty pier into the lake */
+BX(sc,38,.25,4,24,.6,48,wood);for(let i=0;i<10;i++)for(const dz of[-1.8,1.8])BX(sc,.3,1,.3,7+i*4,.1,48+dz,dark,0);
+/* boats */
+[[22,70,0x1f6fb5],[30,30,0xc62828],[36,58,0xf2b705],[18,-20,0x2e7d32],[28,90,0x6a1b9a]].forEach((b,i)=>{const G2=new THREE.Group();G2.position.set(b[0],.1,b[1]);G2.rotation.y=i*.7;sc.add(G2);BX(G2,6.5,.9,2.2,0,.4,0,new THREE.MeshLambertMaterial({color:b[2]}));BX(G2,2.2,1.2,1.8,-.8,1.3,0,new THREE.MeshLambertMaterial({color:0xf5f0e0}));BX(G2,6.7,.15,2.4,0,.9,0,new THREE.MeshLambertMaterial({color:0xffffff}),0)});
+/* ---- Kaptai Dhaba Restaurant & Resort ---- */
+const DH=new THREE.Group();DH.position.set(KAP.dh.x,0,KAP.dh.z);sc.add(DH);window.KDH=KAP.dh;
+const M=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c},o||{}));
+const facade=tx(512,256,(c,w,h)=>{c.fillStyle='#e8751a';c.fillRect(0,0,w,h);for(let i=0;i<16;i++)if(i%2){c.fillStyle='#1b1b1b';c.fillRect(i*32,0,32,h)}c.fillStyle='#2a1c10';c.fillRect(0,150,w,106);for(let i=0;i<4;i++){c.fillStyle='#f4e7c8';c.fillRect(20+i*124,175,96,81);c.fillStyle='#2a1c10';c.beginPath();c.arc(68+i*124,177,48,Math.PI,0);c.fill();c.fillStyle='#16324f';c.beginPath();c.moveTo(24+i*124,140);c.lineTo(24+i*124,70);c.arc(68+i*124,70,44,Math.PI,0);c.lineTo(112+i*124,140);c.fill()}});
+const lakeF=tx(512,256,(c,w,h)=>{c.fillStyle='#f1e6c9';c.fillRect(0,0,w,h);for(let r=0;r<2;r++)for(let i=0;i<6;i++){c.fillStyle='#2a8fa0';c.fillRect(14+i*84,22+r*120,64,86);c.fillStyle='#12606e';c.fillRect(14+i*84,22+r*120,18,86);c.fillRect(60+i*84,22+r*120,18,86)}c.fillStyle='#1e5aa8';c.fillRect(0,0,w,10);c.fillRect(0,122,w,8);c.fillRect(0,h-10,w,10)});
+const sideT=tx(256,128,(c,w,h)=>{c.fillStyle='#efe4c8';c.fillRect(0,0,w,h);for(let r=0;r<3;r++)for(let i=0;i<5;i++){c.fillStyle='#3d6f86';c.fillRect(12+i*48,10+r*40,26,26)}});
+const roofM=M(0x4a5560),cream=M(0xefe4c8),sideM=new THREE.MeshLambertMaterial({map:sideT});
+BX(DH,10,9.6,26,-5,4.8,0,[cream,new THREE.MeshLambertMaterial({map:facade}),roofM,roofM,sideM,sideM]);
+BX(DH,12,6.4,22,5,6.4,0,[new THREE.MeshLambertMaterial({map:lakeF}),cream,roofM,roofM,sideM,sideM]);
+for(const x of[1,4,7,10])for(const z of[-10,-5,0,5,10])BX(DH,.45,3.2,.45,x,1.6,z,dark,0);
+BX(DH,14,.25,24,5.5,3.2,0,wood);BX(DH,2.6,.2,22,11.3,6.4,0,wood);
+const rail=new THREE.MeshLambertMaterial({map:tx(64,32,(c,w,h)=>{c.clearRect(0,0,w,h);c.strokeStyle='#7a2d1c';c.lineWidth=4;for(let i=-32;i<w+32;i+=16){c.beginPath();c.moveTo(i,0);c.lineTo(i+32,h);c.moveTo(i+32,0);c.lineTo(i,h);c.stroke()}c.fillRect(0,0,w,3);c.fillRect(0,h-4,w,4)}),transparent:true,side:THREE.DoubleSide});
+for(const y of[3.9,7.1]){const pl=new THREE.Mesh(new THREE.PlaneGeometry(22,1.1),rail);pl.rotation.y=Math.PI/2;pl.position.set(y<5?12.4:12.6,y,0);DH.add(pl)}
+BX(DH,14,2.8,16,1,11,0,M(0x9fd8f0,{transparent:true,opacity:.5}),0);BX(DH,14.6,.3,16.6,1,12.55,0,roofM);BX(DH,14.7,.18,16.7,1,12.7,0,M(0x1e5aa8),0);
+for(const z of[-8,0,8])BX(DH,.15,2.8,.15,-6,11,z,M(0x1e5aa8),0);
+const redB=kSign(1024,192,'#c0261c',[['কাপ্তাই ধাবা রেস্টুরেন্ট এন্ড রিসোর্ট',100],['৬১ নং আপস্ট্রিম জেটিঘাট, কাপ্তাই',52]]);
+const blank=M(0x555555);
+BX(DH,.3,3.4,22,-10.2,11.3,0,[blank,redB,blank,blank,blank,blank],0);
+const tealB=kSign(1024,256,'#0f8f7e',[['কাপ্তাই ধাবা',130],['KAPTAI DHABA  •  RESTAURANT & RESORT',54]]);
+BX(DH,.3,3,13,-1,14.4,0,[tealB,tealB,blank,blank,blank,blank],0);BX(DH,.2,1.4,.2,-1,13.3,-5,dark,0);BX(DH,.2,1.4,.2,-1,13.3,5,dark,0);
+BX(DH,.3,2.6,16,13.2,10.9,0,[kSign(1024,160,'#c0261c',[['কাপ্তাই ধাবা — লেকের ধারে',90]]),blank,blank,blank,blank,blank],0);
+const org=M(0xe8751a);for(let i=0;i<12;i++)BX(DH,1.6,.3,1,-11.9,.3+i*.53,-12.5+i*1,org,0);
+BX(DH,.12,6.8,.12,-12.7,3.4,-12.8,org,0);BX(DH,.12,6.8,.12,-12.7,3.4,-.8,org,0);
+for(const sx of[-9,-5])BX(DH,3,2.2,.2,sx,1.5,13.1,M(0x16324f),0);
+{const x0=KAP.dh.x-10.3,x1=KAP.dh.x+12,z0=KAP.dh.z-13,z1=KAP.dh.z+13,nb={p:[x0,z0,x1,z0,x1,z1,x0,z1],x0,x1,z0,z1};XBB.push(nb)}
+/* billboards by the main roads */
+{const bm=new THREE.MeshBasicMaterial({map:tx(1024,320,(c,W,H)=>{c.fillStyle='#c0261c';c.fillRect(0,0,W,H);c.strokeStyle='#ffd60a';c.lineWidth=10;c.strokeRect(12,12,W-24,H-24);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.font='bold 92px '+KFF;c.fillText('কাপ্তাই ধাবা',W/2,86,W*.9);c.font='bold 58px '+KFF;c.fillText('রেস্টুরেন্ট এন্ড রিসোর্ট',W/2,168,W*.9);c.fillStyle='#ffd60a';c.font='bold 40px '+KFF;c.fillText('লেকের ধারে • ১২টি লেক ভিউ রুম • ছাদে রেস্টুরেন্ট • জেটিঘাট',W/2,250,W*.94)}),side:THREE.DoubleSide});
+let nb2=0,carry=250;for(const r of D.r){if(r[0]<8)continue;const p=r[1];for(let i=0;i+3<p.length&&nb2<30;i+=2){const dx=p[i+2]-p[i],dz=p[i+3]-p[i+1],L=Math.hypot(dx,dz);if(L<1)continue;if(Math.hypot(p[i],p[i+1])>4200)continue;carry+=L;if(carry<420)continue;carry=0;const nx=-dz/L,nz=dx/L,off=r[0]/2+7,bxp=p[i]+nx*off,bzp=p[i+1]+nz*off;if(kWater(bxp,bzp))continue;const g=new THREE.Group();g.position.set(bxp,0,bzp);g.rotation.y=Math.atan2(-nx,-nz);sc.add(g);BX(g,.25,5.5,.25,-3.2,2.75,0,dark,0);BX(g,.25,5.5,.25,3.2,2.75,0,dark,0);const bd=new THREE.Mesh(new THREE.PlaneGeometry(8.4,2.6),bm);bd.position.set(0,5.6,0);g.add(bd);nb2++}}}
+}
+const AD_LINES=['🍽️ ক্ষুধা পেয়েছে? কাপ্তাই ধাবা রেস্টুরেন্ট এন্ড রিসোর্ট — লেকের ধারে, জেটিঘাটে। ভাত না, শান্তি খাবেন! 😋','🏨 জ্যামে মাথা গরম? ১২টি লেক ভিউ রুম নিয়ে কাপ্তাই ধাবা রেস্টুরেন্ট এন্ড রিসোর্ট আপনার অপেক্ষায় 🌊','🌅 ছাদে ১০০+ আসনের রেস্টুরেন্ট, নিচে লেকের ঢেউ — কাপ্তাই ধাবা, জেটিঘাট, কাপ্তাই','📍 ঠিকানা: ৬১ নং আপস্ট্রিম জেটিঘাট, কাপ্তাই — কাপ্তাই ধাবা রেস্টুরেন্ট এন্ড রিসোর্ট','😎 চ্যাডদের সেরা ঠিকানা: কাপ্তাই ধাবা রেস্টুরেন্ট এন্ড রিসোর্ট। যান, বসুন, লেক দেখুন, দুনিয়া ভুলুন!'];
+let adT=70;function adTick(dt){if(!G.started||G.over)return;adT-=dt;if(adT<=0){adT=150;if(tq.length<2)toast(AD_LINES[Math.floor(Math.random()*AD_LINES.length)],4.4)}if(window.KMODE&&window.KDH&&!window.__dhw&&Math.hypot(S.x-KDH.x,S.z-KDH.z)<90){window.__dhw=1;toast('👋 কাপ্তাই ধাবা রেস্টুরেন্ট এন্ড রিসোর্টে স্বাগতম! লেকের হাওয়া ফ্রি 🌊',4.6)}}
+let kwT=0;function kWaterTick(dt){if(!window.KMODE||!G.started||G.over)return;if(kWater(S.x,S.z)){kwT+=dt;if(kwT>.15&&!G.kw){G.kw=1;toast('🌊 লেকে নেমে পড়লেন! ডুবছেন…',2.5)}S.vf*=Math.pow(.2,dt);if(kwT>2.2){kwT=0;G.kw=0;endTrip('কাপ্তাই লেকে ডুবে গেলেন — গভীরতা মাপতে নেমেছিলেন?')}}else{kwT=Math.max(0,kwT-dt*2);G.kw=0}}
+function adBox(){return `<div style="margin:10px 0;padding:10px 12px;border:2px dashed #b3261e;border-radius:8px;background:#fff6e0"><div style="font-size:11px;opacity:.7">স্পনসর্ড</div><div style="font-weight:700;font-size:17px">🍽️ কাপ্তাই ধাবা রেস্টুরেন্ট এন্ড রিসোর্ট</div><div style="font-size:14px">ঢাকার জ্যামের পর একটু শান্তি দরকার? জেটিঘাটে লেকের ধারে চলে আসুন। ১২টি লেক ভিউ রুম, ছাদে ১০০+ আসনের রেস্টুরেন্ট।<br>📍 ৬১ নং আপস্ট্রিম জেটিঘাট, কাপ্তাই</div></div>`}
+
 /* roads */
 {const pos=[],col=[];const add=(a,b,c,k)=>{pos.push(...a,...b,...c);for(let i=0;i<3;i++)col.push(...k)};
 for(const [w,p] of D.r){const k=[.2,.21,.23],y=w<=3?.06:.05;
@@ -84,7 +136,7 @@ sh=(sh*16807)%2147483647;const v=.82+(sh%100)/100*.14;Q2(P1,P2,R1,R2,.27,[1,1,1]
 const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();uvw(g,.5);sc.add(new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide,map:TXP})));kerbMesh(pos2,col2);{const mg=new THREE.BufferGeometry();mg.setAttribute('position',new THREE.Float32BufferAttribute(MKP,3));mg.setAttribute('color',new THREE.Float32BufferAttribute(MKC,3));mg.computeVertexNormals();const mm=new THREE.Mesh(mg,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));mm.receiveShadow=true;sc.add(mm)}}
 /* big map: major roads from the downloaded pack (ribbons only, culled by cell) */
 let XRD=0;
-if(D.x&&D.x.length){let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}
+if(D.x&&D.x.length){let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){if(window.KMODE&&(Math.abs(r[1][i])>3600||Math.abs(r[1][i+1])>3200))continue;a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}
 const inside=(x,z)=>x>a0-40&&x<a1+40&&z>b0-40&&z<b1+40,cells={};
 for(const [w,p] of D.x){for(let i=0;i+3<p.length;i+=2){const x1=p[i],z1=p[i+1],x2=p[i+2],z2=p[i+3];if(inside(x1,z1)&&inside(x2,z2))continue;const k=Math.floor(x1/600)+','+Math.floor(z1/600),c=cells[k]||(cells[k]={pos:[],col:[]});
 const dx=x2-x1,dz=z2-z1,L=Math.hypot(dx,dz)||1,nx=-dz/L*w/2,nz=dx/L*w/2,y=.04;c.pos.push(x1+nx,y,z1+nz,x2+nx,y,z2+nz,x1-nx,y,z1-nz,x1-nx,y,z1-nz,x2+nx,y,z2+nz,x2-nx,y,z2-nz);for(let q=0;q<6;q++)c.col.push(.2,.21,.23);XRD++}}
@@ -147,7 +199,7 @@ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32Bu
 g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));sc.add(new THREE.Mesh(g,(window.BMAT=new THREE.MeshLambertMaterial({vertexColors:true,map:WT,emissive:0x000000,emissiveMap:WE,side:THREE.DoubleSide}))));sc.add(RFM.mesh())}
 
 /* metro viaduct: real route from OpenStreetMap, height is estimated */
-{const pos=[],col=[],H=11.6;const quad=(p,q,w,y,k)=>{const dx=q[0]-p[0],dz=q[1]-p[1],L=Math.hypot(dx,dz)||1,nx=-dz/L*w/2,nz=dx/L*w/2;const A=[p[0]+nx,y,p[1]+nz],B=[p[0]-nx,y,p[1]-nz],C=[q[0]+nx,y,q[1]+nz],E=[q[0]-nx,y,q[1]-nz];pos.push(...A,...C,...B,...B,...C,...E);for(let i=0;i<6;i++)col.push(...k)};
+if(!window.KMODE){const pos=[],col=[],H=11.6;const quad=(p,q,w,y,k)=>{const dx=q[0]-p[0],dz=q[1]-p[1],L=Math.hypot(dx,dz)||1,nx=-dz/L*w/2,nz=dx/L*w/2;const A=[p[0]+nx,y,p[1]+nz],B=[p[0]-nx,y,p[1]-nz],C=[q[0]+nx,y,q[1]+nz],E=[q[0]-nx,y,q[1]-nz];pos.push(...A,...C,...B,...B,...C,...E);for(let i=0;i<6;i++)col.push(...k)};
 function snapMetro(c){const ALL=D.r.concat(D.x||[]),G2=new Map(),cs=60;
 ALL.forEach(r=>{if(r[0]<8)return;const p=r[1];for(let i=0;i+3<p.length;i+=2){const L=Math.hypot(p[i+2]-p[i],p[i+3]-p[i+1]),n=Math.max(1,Math.ceil(L/40));for(let k=0;k<=n;k++){const x=p[i]+(p[i+2]-p[i])*k/n,z=p[i+1]+(p[i+3]-p[i+1])*k/n,key=Math.floor(x/cs)+','+Math.floor(z/cs);let l=G2.get(key);if(!l){l=[];G2.set(key,l)}l.push([p[i],p[i+1],p[i+2],p[i+3],r[0]])}}});
 const P=[];{let acc=0;P.push([c[0],c[1]]);for(let i=0;i+3<c.length;i+=2){const dx=c[i+2]-c[i],dz=c[i+3]-c[i+1],L=Math.hypot(dx,dz);let s=12-acc;while(s<=L){P.push([c[i]+dx*s/L,c[i+1]+dz*s/L]);s+=12}acc=L-(s-12)}P.push([c[c.length-2],c[c.length-1]])}
@@ -885,10 +937,10 @@ const ASG=new Map();RD.forEach((r,ri)=>{const p=r[1];for(let i=0;i+3<p.length;i+
 function nrt(x,z){const cx=Math.floor(x/60),cz=Math.floor(z/60);let b=1e9,tx=1,tz=0,w=6;for(let a=-2;a<=2;a++)for(let c=-2;c<=2;c++){const l=ASG.get((cx+a)+','+(cz+c));if(!l)continue;for(const e of l){const r=RD[e[0]],p=r[1],i=e[1],ax=p[i],az=p[i+1],bx=p[i+2],bz=p[i+3],dx=bx-ax,dz=bz-az,L=dx*dx+dz*dz||1,u=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/L)),d=Math.hypot(x-ax-u*dx,z-az-u*dz)-r[0]/2-(r[0]>=6?2.4:.6);if(d<b){b=d;const ll=Math.sqrt(L);tx=dx/ll;tz=dz/ll;w=r[0]}}}return[b,tx,tz,w]}
 function perimBad(cr,th){for(let e=0;e<4;e++){const a=cr[e],b=cr[(e+1)%4];for(const t of[.25,.5,.75])if(nrt(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t)[0]<th)return true}return nrt((cr[0][0]+cr[2][0])/2,(cr[0][1]+cr[2][1])/2)[0]<th}
 {/* fill every empty plot between the real buildings of the detailed area */
-let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}
-const hs=new Map(),hc=40,bbs=[];BB.forEach((b,bi)=>{for(let a=Math.floor(b.x0/hc);a<=Math.floor(b.x1/hc);a++)for(let c=Math.floor(b.z0/hc);c<=Math.floor(b.z1/hc);c++){const k=a+','+c;let l=hs.get(k);if(!l){l=[];hs.set(k,l)}l.push(bi)}});
+let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){if(window.KMODE&&(Math.abs(r[1][i])>3600||Math.abs(r[1][i+1])>3200))continue;a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}
+if(window.KMODE){a0=-1500;a1=300;b0=-900;b1=700}const hs=new Map(),hc=40,bbs=[];BB.forEach((b,bi)=>{for(let a=Math.floor(b.x0/hc);a<=Math.floor(b.x1/hc);a++)for(let c=Math.floor(b.z0/hc);c<=Math.floor(b.z1/hc);c++){const k=a+','+c;let l=hs.get(k);if(!l){l=[];hs.set(k,l)}l.push(bi)}});
 const hOf=bi=>D.b[bi]?D.b[bi][0]:10;let sd=2024;const rr=()=>(sd=(sd*16807)%2147483647)/2147483647;const A={bp:[],bc:[],bu:[],bn:[]};let nf=0;
-for(let gx=a0-30;gx<a1+30;gx+=15)for(let gz=b0-30;gz<b1+30;gz+=15){const x=gx+rr()*15,z=gz+rr()*15;if(rr()<.05)continue;const q=nrt(x,z);if(q[0]>150)continue;const hw=3.8+rr()*3.6,hd=3.8+rr()*3.6,rad=Math.hypot(hw,hd);if(q[0]<rad+.6)continue;
+for(let gx=a0-30;gx<a1+30;gx+=15)for(let gz=b0-30;gz<b1+30;gz+=15){const x=gx+rr()*15,z=gz+rr()*15;if(rr()<.05)continue;if(window.KMODE&&kWater(x,z))continue;const q=nrt(x,z);if(q[0]>150)continue;const hw=3.8+rr()*3.6,hd=3.8+rr()*3.6,rad=Math.hypot(hw,hd);if(q[0]<rad+.6)continue;
 const tx=q[1],tz=q[2],nx=-tz,nz=tx,cr=[[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(m=>[x+tx*m[0]+nx*m[1],z+tz*m[0]+nz*m[1]]);if(cr.some(m=>nrt(m[0],m[1])[0]<.8)||perimBad(cr,.5))continue;
 const xs=cr.map(m=>m[0]),zs=cr.map(m=>m[1]),X0=Math.min(...xs)-1.2,X1=Math.max(...xs)+1.2,Z0=Math.min(...zs)-1.2,Z1=Math.max(...zs)+1.2;let bad=false,hsum=0,hn=0;
 for(let a=Math.floor((X0-25)/hc);a<=Math.floor((X1+25)/hc)&&!bad;a++)for(let c=Math.floor((Z0-25)/hc);c<=Math.floor((Z1+25)/hc)&&!bad;c++){const l=hs.get(a+','+c);if(!l)continue;for(const bi of l){const b=BB[bi];if(b.x1>X0&&b.x0<X1&&b.z1>Z0&&b.z0<Z1){bad=true;break}if(Math.abs((b.x0+b.x1)/2-x)<35&&Math.abs((b.z0+b.z1)/2-z)<35){hsum+=hOf(bi);hn++}}}
@@ -899,7 +951,7 @@ for(let a=Math.floor(nb.x0/hc);a<=Math.floor(nb.x1/hc);a++)for(let c=Math.floor(
 
 
 /* green street-name boards at junctions, and big gate boards at the start of well-known places */
-const EB0=(()=>{let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}return[a0-45,a1+45,b0-45,b1+45]})(),inEB0=(x,z)=>x>EB0[0]&&x<EB0[1]&&z>EB0[2]&&z<EB0[3];
+const EB0=(()=>{let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){if(window.KMODE&&(Math.abs(r[1][i])>3600||Math.abs(r[1][i+1])>3200))continue;a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}return[a0-45,a1+45,b0-45,b1+45]})(),inEB0=(x,z)=>x>EB0[0]&&x<EB0[1]&&z>EB0[2]&&z<EB0[3];
 const PRJ2=(la,lo)=>[(lo-90.4105)*111320*Math.cos(23.7325*Math.PI/180),-(la-23.7325)*110574];
 const STX={},gBoxS=new THREE.BoxGeometry(1,1,1),trm=n=>n.length>22?n.slice(0,21)+'…':n;
 function signTex(names,big){const key=names.join('|')+(big?'#':'');return STX[key]||(STX[key]=tex((c,w,h)=>{c.fillStyle='#0b6e3a';c.fillRect(0,0,w,h);c.strokeStyle='#ffffff';c.lineWidth=big?10:7;c.strokeRect(big?10:6,big?10:6,w-(big?20:12),h-(big?20:12));c.fillStyle='#ffffff';c.textAlign='center';
@@ -980,7 +1032,7 @@ const PRJ=(la,lo)=>[+((lo-90.4105)*111320*Math.cos(23.7325*Math.PI/180)).toFixed
 const LMK=[['শাহবাগ',23.7389,90.3958],['ফার্মগেট',23.7581,90.3897],['কারওয়ান বাজার',23.7512,90.3933],['মহাখালী',23.7781,90.4004],['বনানী',23.7937,90.4066],['মিরপুর ১০',23.8069,90.3687],['উত্তরা',23.8759,90.3795],['টঙ্গী',23.8903,90.4054],['গাজীপুর চৌরাস্তা',24.0008,90.4210],['যাত্রাবাড়ী',23.7104,90.4344],['নারায়ণগঞ্জ',23.6238,90.5000]];
 let lmStart=null;
 if(D.x&&D.x.length&&Math.random()<.7){for(let tries=0;tries<6&&!lmStart;tries++){const L0=LMK[Math.floor(Math.random()*LMK.length)],q=PRJ(L0[1],L0[2]);let bd=450,bs=null;for(const r of D.x){const p=r[1];for(let i=0;i+3<p.length;i+=2){const d=Math.hypot(p[i]-q[0],p[i+1]-q[1]);if(d<bd){bd=d;bs=[p[i],p[i+1],p[i+2],p[i+3]]}}}if(bs)lmStart={sp:bs,name:L0[0]+' (আনুমানিক)'}}}
-CAND.sort((a,b)=>b[0]-a[0]);if(lmStart){sp=lmStart.sp;window.STARTNAME=lmStart.name}else{const top=CAND.slice(0,Math.max(1,Math.floor(CAND.length*.5))),pk2=top[Math.floor(Math.random()*top.length)];sp=pk2[1];window.STARTNAME=pk2[2]||'ঢাকার সড়ক'}
+CAND.sort((a,b)=>b[0]-a[0]);if(window.KMODE){sp=[-118,22,-55,15];window.STARTNAME='কাপ্তাই জেটিঘাট'}else if(lmStart){sp=lmStart.sp;window.STARTNAME=lmStart.name}else{const top=CAND.slice(0,Math.max(1,Math.floor(CAND.length*.5))),pk2=top[Math.floor(Math.random()*top.length)];sp=pk2[1];window.STARTNAME=pk2[2]||'ঢাকার সড়ক'}
 const S={x:sp[0],z:sp[1],h:Math.atan2(sp[2]-sp[0],-(sp[3]-sp[1])),vf:0,st:0,park:0,bh:0,th:0,dn:0,hb:0,rt:0};
 const inp={L:0,R:0,G:0,B:0,V:0};
 function step(dt){if(G.over){S.vf=0;return}const up=inp.G&&G.fuel>0,pull=inp.P&&G.fuel>0,dn=inp.V,sp=inp.B;
@@ -1024,7 +1076,7 @@ cp.set(S.x-Math.sin(S.h)*17,8.5,S.z+Math.cos(S.h)*17);
 function rs(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}addEventListener('resize',rs);rs();
 
 /* minimap */
-const K=.8;let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){bx0=Math.min(bx0,r[1][i]);bx1=Math.max(bx1,r[1][i]);bz0=Math.min(bz0,r[1][i+1]);bz1=Math.max(bz1,r[1][i+1])}
+const K=.8;let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){if(window.KMODE&&(Math.abs(r[1][i])>3600||Math.abs(r[1][i+1])>3200))continue;bx0=Math.min(bx0,r[1][i]);bx1=Math.max(bx1,r[1][i]);bz0=Math.min(bz0,r[1][i+1]);bz1=Math.max(bz1,r[1][i+1])}
 bx0-=60;bz0-=60;bx1+=60;bz1+=60;const MO=document.createElement('canvas');MO.width=Math.ceil((bx1-bx0)*K);MO.height=Math.ceil((bz1-bz0)*K);
 {const c=MO.getContext('2d');c.fillStyle='#1d242b';c.fillRect(0,0,MO.width,MO.height);const X=x=>(x-bx0)*K,Z=z=>(z-bz0)*K;
 c.fillStyle='#4b5462';for(const b of D.b){const p=b[2];c.beginPath();c.moveTo(X(p[0]),Z(p[1]));for(let i=2;i<p.length;i+=2)c.lineTo(X(p[i]),Z(p[i+1]));c.closePath();c.fill()}
@@ -1131,7 +1183,7 @@ $('ln').textContent='💸 চ্যাডের খুশি ৳'+bn(Math.round(
 engUpdate(v,!!inp.G,dt);voicesTick(dt);
 if(!!inp.H!==hs){hs=!!inp.H;hornOn(hs)}}
 $('bC').onclick=()=>{cm=(cm+1)%3};$('bN').onclick=()=>setNight(+!NIGHT);
-let last=performance.now();let mf=0;function loop(t){let dt=(t-last)/1000;last=t;if(dt>.1)dt=.1;if(G.started)for(let i=0;i<2;i++)step(dt/2);render(dt);rt+=dt;if(G.started){gameTick(dt);endCheck(dt)}animBus(dt);trafficTick(dt);ridersTick(dt);lampTick(dt);walkTick(dt);debTick(dt);fxTick(dt);chunkTick();hud(dt);qual(dt);if((mf++)%2==0)drawMini();if(rt>.35){rt=0;$('rn').textContent='রাস্তা: '+roadName()}requestAnimationFrame(loop)}
+let last=performance.now();let mf=0;function loop(t){let dt=(t-last)/1000;last=t;if(dt>.1)dt=.1;if(G.started)for(let i=0;i<2;i++)step(dt/2);render(dt);rt+=dt;if(G.started){gameTick(dt);endCheck(dt)}animBus(dt);trafficTick(dt);ridersTick(dt);lampTick(dt);adTick(dt);kWaterTick(dt);walkTick(dt);debTick(dt);fxTick(dt);chunkTick();hud(dt);qual(dt);if((mf++)%2==0)drawMini();if(rt>.35){rt=0;$('rn').textContent='রাস্তা: '+roadName()}requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 function hold(id,k){const e=$(id),on=v=>{inp[k]=v;e.classList.toggle('on',!!v)};e.addEventListener('pointerdown',ev=>{ev.preventDefault();on(1)});['pointerup','pointerleave','pointercancel'].forEach(n=>e.addEventListener(n,()=>on(0)));e.addEventListener('contextmenu',ev=>ev.preventDefault())}
 hold('bL','L');hold('bR','R');hold('bG','G');hold('bB','B');hold('bV','V');hold('bH','H');hold('bP','P');
@@ -1264,7 +1316,7 @@ let h='<div class="paper"><h2>'+esc(r.n)+'-এর ট্রিপ শেষ</h2>
 h+='<div style="font-size:30px;font-weight:700;margin:2px 0">চ্যাডের খুশি '+fm(r.l)+'</div><table>'+rows.map(x=>'<tr><td>'+x[0]+'</td><td>'+x[1]+'</td></tr>').join('')+'</table>';
 h+=roastHTML();h+=altHTML();
 h+='<div class="tabs">'+[['d','আজ'],['w','সপ্তাহ'],['m','মাস']].map(x=>'<button data-k="'+x[0]+'" class="'+(LBTAB===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div><div class="pl">'+PL[LBTAB]+'</div><table>'+(lb.length?lb.map((x,i)=>'<tr'+(x.t===r.t?' class="me"':'')+'><td>'+bn(i+1)+'. '+esc(x.n)+'</td><td>'+fm(x.l)+'</td></tr>').join(''):'<tr><td>'+(BPNET.enabled&&(ONLB||(ONL[LBTAB]&&!ONL[LBTAB].done))?'লোড হচ্ছে…':'এখনো কেউ নেই')+'</td><td></td></tr>')+'</table><div class="sub" style="margin-top:6px">'+(onl?({d:'দিনের সেরা ২০টা চ্যাড',w:'সপ্তাহের শ্রেষ্ঠ ২০ চ্যাডবাজ',m:'মাসিক সর্বশ্রেষ্ঠ ২০ চ্যাড সম্রাট'})[LBTAB]:(BPNET.enabled?'অনলাইন স্কোরবোর্ড এখন পাওয়া যাচ্ছে না — আপাতত এই ফোনের স্কোর দেখানো হচ্ছে।':'স্কোরবোর্ড শুধু এই ফোনে সংরক্ষিত।'))+'</div>';
-h+='<button class="again" id="again">আবার খেলুন</button><div class="sub" style="margin-top:8px">ক্ষতির সংখ্যাগুলো ব্যঙ্গ, ফুয়েল ও ভাড়ার হিসাব খেলার জন্য বানানো। সূত্র: শ্বেতপত্র, আইএমইডি।</div></div>';
+h+=adBox();h+='<button class="again" id="again">আবার খেলুন</button><div class="sub" style="margin-top:8px">ক্ষতির সংখ্যাগুলো ব্যঙ্গ, ফুয়েল ও ভাড়ার হিসাব খেলার জন্য বানানো। সূত্র: শ্বেতপত্র, আইএমইডি।</div></div>';
 const e=$('sc');e.innerHTML=h;e.style.display='block';e.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{LBTAB=b.dataset.k;showScore()});$('again').onclick=()=>location.reload()}
 let idle=0,armed=0;
 function endCheck(dt){if(G.fuel<=0&&G.cash<12&&Math.abs(S.vf)<.1){idle+=dt;if(idle>8)endTrip('তেল ও টাকা দুটোই শেষ')}else idle=0}
@@ -1274,7 +1326,7 @@ let qa=0,qc=0,ql=0;
 function qual(dt){if(!G.started)return;qa+=dt;qc++;if(qa>2.5){const f=qc/qa;qa=qc=0;if(f<36&&ql<2){ql++;if(ql===1){R.setPixelRatio(1.25);rs()}else{sun.castShadow=false;R.shadowMap.enabled=false;sc.traverse(o=>{if(o.material)o.material.needsUpdate=true})}}}}
 /* big map: buildings, footpaths, trees and poles are built around you as you drive */
 const CSZ=300,CHK=new Map(),XSG=new Map(),OCC=new Set();let EB=null;
-{let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}EB=[a0-45,a1+45,b0-45,b1+45]}
+{let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){if(window.KMODE&&(Math.abs(r[1][i])>3600||Math.abs(r[1][i+1])>3200))continue;a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}EB=[a0-45,a1+45,b0-45,b1+45]}
 const inEB=(x,z)=>x>EB[0]&&x<EB[1]&&z>EB[2]&&z<EB[3];
 function segd(x,z,ax,az,bx,bz){const dx=bx-ax,dz=bz-az,L=dx*dx+dz*dz||1,u=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/L));return Math.hypot(x-ax-u*dx,z-az-u*dz)}
 if(D.x&&D.x.length)D.x.forEach((r,ri)=>{const p=r[1];for(let i=0;i+3<p.length;i+=2){const L=Math.hypot(p[i+2]-p[i],p[i+3]-p[i+1]),n=Math.max(1,Math.ceil(L/50));for(let k=0;k<=n;k++){const x=p[i]+(p[i+2]-p[i])*k/n,z=p[i+1]+(p[i+3]-p[i+1])*k/n,key=Math.floor(x/120)+','+Math.floor(z/120);let l=XSG.get(key);if(!l){l=[];XSG.set(key,l)}if(!l.some(e=>e[0]===ri&&e[1]===i/2))l.push([ri,i/2])}}});
