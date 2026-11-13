@@ -14,7 +14,8 @@ jobs:
         run: |
           mkdir -p pack/game
           cp extension/manifest.json extension/background.js pack/
-          rsync -a --exclude '.git' --exclude '.github' --exclude 'extension' --exclude 'supabase' --exclude 'README.md' ./ pack/game/
+          sed -i "s/\"version\": \"1.0.0\"/\"version\": \"1.0.${{ github.run_number }}\"/" pack/manifest.json
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'extension' --exclude 'pack' --exclude 'supabase' --exclude 'README.md' ./ pack/game/
           (cd pack && zip -qr ../BamePlastic-Chrome-Extension.zip .)
       - name: Publish as a Release
         env:
