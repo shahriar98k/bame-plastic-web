@@ -1356,7 +1356,7 @@ else if(k==='auto'){mk('square',780,.035,2200)}
 else if(k==='bike'){mk('square',560,.035,2200);mk('square',840,.02,2200)}
 else{const hi=k!=='rick';ding(hi,.12,0);hornTm=setInterval(()=>ding(hi,.12,0),230)}}
 function nearTxt(){let f=1e9,s=1e9,p=1e9;for(const o of OBJ){const d=Math.hypot(S.x-o.x,S.z-o.z);if(o.k==='fuel')f=Math.min(f,d);else if(o.k==='stop')s=Math.min(s,d);else if(o.k==='chk')p=Math.min(p,d)}const t=x=>x>=1e9?'—':bn(Math.round(x))+' মি';return '<br>⛽ '+t(f)+' · 🚔 '+t(p)+' · 🚏 '+t(s)}
-function hud(dt){const v=Math.abs(S.vf),kmh=v*3.6;TR.t+=dt;TR.d+=v*dt;TR.top=Math.max(TR.top,kmh);
+function hud(dt){const v=Math.abs(S.vf),kmh=v*3.6;TR.t+=dt;TR.d+=v*dt;TR.top=Math.max(TR.top,kmh);if(kmh>=100){if(!SPD.on&&TR.t-SPD.last>25){SPD.on=1;SPD.last=TR.t;sfxPlay(['ye'])}}else if(kmh<92)SPD.on=0;
 $('gs').textContent=bn(Math.round(kmh));$('gr').textContent=S.park?'P':S.vf>.3?'D':S.vf<-.3?'R':'N';$('gf').style.width=Math.min(100,kmh/90*100)+'%';
 const m=Math.floor(TR.t/60),s=Math.floor(TR.t%60),deg=Math.round(((S.h*180/Math.PI)%360+360)%360);
 $('ln').textContent='💸 চ্যাডের খুশি ৳'+bn(Math.round(G.loss).toLocaleString('en-IN'))+(G.cmbT>0&&G.cmb>1?'  ×'+bn(G.cmb):'');$('fl').textContent=(PV.use?'⛽ '+bn(G.fuel.toFixed(2))+' লি':'🦵 পা চালিত')+' · 👥 '+bn(G.pass)+'/'+bn(G.pm)+' · ৳'+bn(Math.round(G.cash));$('fl').style.color=G.fuel<.15?'#ff6b6b':'#fff';if(OBJV&&G.started){$('ob').style.display='block';const o=OBJV.o,dx=o.x-S.x,dz=o.z-S.z;$('oba').style.transform='rotate('+(Math.atan2(dx,-dz)-S.h)+'rad)';$('obt').textContent=o.name+' · '+bn(Math.round(Math.hypot(dx,dz)))+' মি · ⏱ '+bn(Math.ceil(OBJV.t))+' সে'}$('tr').innerHTML='⏱ '+bn(String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'))+'<br>📏 '+bn((TR.d/1000).toFixed(2))+' কিমি<br>🏁 সর্বোচ্চ '+bn(Math.round(TR.top))+' কিমি/ঘ'+nearTxt();
@@ -1368,10 +1368,26 @@ requestAnimationFrame(loop);
 function hold(id,k){const e=$(id),on=v=>{inp[k]=v;e.classList.toggle('on',!!v)};e.addEventListener('pointerdown',ev=>{ev.preventDefault();on(1)});['pointerup','pointerleave','pointercancel'].forEach(n=>e.addEventListener(n,()=>on(0)));e.addEventListener('contextmenu',ev=>ev.preventDefault())}
 hold('bL','L');hold('bR','R');hold('bG','G');hold('bB','B');hold('bV','V');hold('bH','H');hold('bP','P');
 const KM={ArrowLeft:'L',a:'L',ArrowRight:'R',d:'R',ArrowUp:'G',w:'G',ArrowDown:'V',s:'V',' ':'B',Shift:'P',h:'H'};
-addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.length>1?e.key:e.key.toLowerCase();if(k==='c')cm=(cm+1)%3;if(k==='n')setNight(+!NIGHT);if(KM[k]){inp[KM[k]]=1;e.preventDefault()}});addEventListener('keyup',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.length>1?e.key:e.key.toLowerCase();if(KM[k])inp[KM[k]]=0});
+/* ---- voice clips (hit a man / woman, 100 km/h, mob) and the music player ---- */
+const SFXF={behen:'sfx/behen.mp3',saali:'sfx/saali.mp3',dhat:'sfx/dhat.mp3',tari:'sfx/tari.mp3',pakad:'sfx/pakad.mp3',ye:'sfx/ye.mp3'},SFXA={};
+function sfxLoad(){for(const k in SFXF){if(SFXA[k])continue;try{const a=new Audio(SFXF[k]);a.preload='auto';a.volume=1;SFXA[k]=a}catch(e){}}}
+let sfxBusy=0;
+function sfxPlay(list){sfxLoad();if(sfxBusy&&Date.now()-sfxBusy<9000)return;sfxBusy=Date.now();let i=0;const next=()=>{if(i>=list.length){sfxBusy=0;return}const a=SFXA[list[i++]];if(!a){next();return}try{a.currentTime=0;a.onended=next;a.onerror=next;const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{sfxBusy=0})}catch(e){sfxBusy=0}};next()}
+/* woman: behen ki laudi ho, then saali maili raand, then dhat teri mkc  |  man: tari miya dunga, then dhat teri mkc */
+function pedSnd(fem){sfxPlay(fem?['behen','saali','dhat']:['tari','dhat'])}
+const SPD={on:0,last:-99};
+const MUS={on:0,list:null,order:[],i:0,a:null,t:null};
+function musicLoad(cb){if(MUS.list){cb();return}fetch('music/playlist.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{MUS.list=Array.isArray(j)?j:[];cb()}).catch(()=>{MUS.list=[];cb()})}
+function musicShuffle(){const o=MUS.list.map((_,i)=>i);for(let i=o.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]]}MUS.order=o;MUS.i=0}
+function musicPlay(){if(!MUS.list||!MUS.list.length){toast('🎵 music ফোল্ডারে কোনো গান পাওয়া যায়নি',3);return}if(MUS.i>=MUS.order.length)musicShuffle();const tr=MUS.list[MUS.order[MUS.i++]];if(!MUS.a){MUS.a=new Audio();MUS.a.volume=.55;MUS.a.onended=()=>{if(MUS.on)musicPlay()};MUS.a.onerror=()=>{if(MUS.on)setTimeout(musicPlay,300)}}
+MUS.a.src='music/'+tr.f;MUS.on=1;const pr=MUS.a.play();if(pr&&pr.catch)pr.catch(()=>{MUS.on=0});toast('🎵 '+tr.t,3)}
+function musicKey(){musicLoad(()=>{if(!MUS.on&&!MUS.order.length)musicShuffle();musicPlay()})}
+function musicStop(){MUS.on=0;if(MUS.a){MUS.a.pause();MUS.a.currentTime=0}toast('🔇 গান বন্ধ',1.6)}
+
+addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.length>1?e.key:e.key.toLowerCase();if(k==='c')cm=(cm+1)%3;if(k==='n')setNight(+!NIGHT);if(k==='m'&&!e.repeat)musicKey();if(k==='s'&&MUS.on&&!e.repeat)musicStop();if(KM[k]){inp[KM[k]]=1;e.preventDefault()}});addEventListener('keyup',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.length>1?e.key:e.key.toLowerCase();if(KM[k])inp[KM[k]]=0});
 /* walking pedestrians (v6 people, animated) - they follow you around the city */
 const WLK=[];
-{for(let n=0;n<80;n++){const g=V6.mkHuman(V6.humanSpec(RN()<.35,{h:.95+RN()*.12}),true);g.visible=false;sc.add(g);WLK.push({g,ri:0,s:0,dir:1,o:2,sd:RN()<.5?-1:1,ph:RN()*6,hold:0,sp:.9+RN()*.6,placed:false,init:0,v:0,cr:null})}}
+{for(let n=0;n<80;n++){const fm=RN()<.35,g=V6.mkHuman(V6.humanSpec(fm,{h:.95+RN()*.12}),true);g.visible=false;sc.add(g);WLK.push({g,fem:fm,ri:0,s:0,dir:1,o:2,sd:RN()<.5?-1:1,ph:RN()*6,hold:0,sp:.9+RN()*.6,placed:false,init:0,v:0,cr:null})}}
 function setLat(w){w.lat=w.sd*(RD[w.ri][0]/2+.7+Math.random()*.9);w.cross=null}
 function initWalkers(){for(const w of WLK){if(placeNear(w,8,260)){setLat(w);w.placed=true;w.g.visible=true}}}
 let pedCd=0,MOB=0,bustT=0;
@@ -1387,7 +1403,7 @@ const BEATL2=['🔨 গাড়ি ভাঙ! কাচ ভাঙ!','🦵 ল�
 function animKick(g,t){const u=g.userData;if(!u.lL)return;u.k+=(0-u.k)*.2;const p=Math.max(0,Math.sin(t*1.1));u.aR.rotation.x=-.6;u.aL.rotation.x=-.6;u.eR.rotation.x=-1;u.eL.rotation.x=-1;u.lR.rotation.x=-1.25*p;u.kR.rotation.x=.15+.5*(1-p);u.lL.rotation.x=.1;u.kL.rotation.x=.1;u.bp.rotation.x=-.12*p;u.bp.rotation.y=0;u.bp.position.y=.95-.02*p}
 /* where a mob member stands: right next to the rider (open vehicles) or around the body of a bus / car / CNG */
 function mobSpot(w){const a=w.ci*2.4+.5,c=Math.cos(a),s=Math.sin(a),en=ENCL[PKIND],hw=PV.hw+(en?.9:.5),hl=(en?PV.ol:Math.min(PV.ol,.9))+(en?.9:.5),k=1/Math.max(Math.abs(c)/hw,Math.abs(s)/hl),lx=c*k,lz=s*k,fx=Math.sin(S.h),fz=-Math.cos(S.h),rx=Math.cos(S.h),rz=Math.sin(S.h);return[S.x+rx*lx+fx*lz,S.z+rz*lx+fz*lz]}
-function startMob(){if(!G.started)return;const wasOn=MOB>0;MOB=22;let n=0;const cand=WLK.filter(w=>w.placed&&!w.ch).map(w=>[Math.hypot(w.g.position.x-S.x,w.g.position.z-S.z),w]).filter(q=>q[0]<110).sort((a,b)=>a[0]-b[0]);for(const q of cand){if(n>=10)break;q[1].ch=1;q[1].ci=n;q[1].bt=0;q[1].g.rotation.z=0;n++}if(n&&!wasOn)toast('😡 '+SLANG[Math.floor(Math.random()*SLANG.length)],2.4)}
+function startMob(){if(!G.started)return;const wasOn=MOB>0;MOB=22;if(!wasOn)sfxPlay(['pakad']);let n=0;const cand=WLK.filter(w=>w.placed&&!w.ch).map(w=>[Math.hypot(w.g.position.x-S.x,w.g.position.z-S.z),w]).filter(q=>q[0]<110).sort((a,b)=>a[0]-b[0]);for(const q of cand){if(n>=10)break;q[1].ch=1;q[1].ci=n;q[1].bt=0;q[1].g.rotation.z=0;n++}if(n&&!wasOn)toast('😡 '+SLANG[Math.floor(Math.random()*SLANG.length)],2.4)}
 function turnY(g,t,dt,r){let d=t-g.rotation.y;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;g.rotation.y+=Math.max(-r*dt,Math.min(r*dt,d))}
 function freeMove(w,dt,tx2,tz2,maxSp,stop){const g=w.g,ex=tx2-g.position.x,ez=tz2-g.position.z,ed=Math.hypot(ex,ez)||1;const want=ed>stop?Math.min(maxSp,(ed-stop)*2.6+.4):0;w.vs=w.vs||0;w.vs+=(want-w.vs)*Math.min(1,(want>w.vs?4.5:8)*dt);
 if(ed>.25)turnY(g,Math.atan2(ex,ez),dt,w.vs>3?7:11);const fx=Math.sin(g.rotation.y),fz=Math.cos(g.rotation.y);g.position.x+=fx*w.vs*dt;g.position.z+=fz*w.vs*dt;
@@ -1427,7 +1443,7 @@ if(w.cross!==null){const dl=w.cross-w.lat,st=1.5*dt,sg=Math.sign(dl);if(Math.abs
 else if(Math.random()<dt*.04&&RD[w.ri][0]>=6){const hw=RD[w.ri][0]/2+.9;w.cross=-Math.sign(w.lat||1)*(hw+Math.random()*.9)}
 x=a[0]-tz*w.lat;z=a[1]+tx*w.lat;w.ph+=dt*6*w.sp;w.g.position.set(x,Math.abs(Math.cos(w.ph))*.02,z);turnY(w.g,Math.atan2(vx,vz),dt,6);V6.animH(w.g,w.ph,1);
 const ddx=x-S.x,ddz=z-S.z;if(ddx*ddx+ddz*ddz>500*500){if(placeNear(w,150,380))setLat(w);continue}}
-if(pedCd<=0&&G.started&&Math.abs(S.vf)>1){const dx=x-S.x,dz=z-S.z,lat=dx*Math.cos(S.h)+dz*Math.sin(S.h),lon=dx*Math.sin(S.h)-dz*Math.cos(S.h);if(Math.abs(lat)<PV.hw+.26&&Math.abs(lon)<PV.ol+.28){const spd=Math.abs(S.vf);if(LNCH[PKIND]&&spd>=LNCH_MIN){pedLaunch(w,spd,x,z)}else{w.hold=2.6;w.fl=0}pedCd=w.ch?.45:1.2;if(!w.ch)S.vf*=.6;crime(50000,'🚶 পথচারীকে ধাক্কা! ছিটকে পড়ল','ped');panic(x,z)}}}
+if(pedCd<=0&&G.started&&Math.abs(S.vf)>1){const dx=x-S.x,dz=z-S.z,lat=dx*Math.cos(S.h)+dz*Math.sin(S.h),lon=dx*Math.sin(S.h)-dz*Math.cos(S.h);if(Math.abs(lat)<PV.hw+.26&&Math.abs(lon)<PV.ol+.28){const spd=Math.abs(S.vf);if(LNCH[PKIND]&&spd>=LNCH_MIN){pedLaunch(w,spd,x,z)}else{w.hold=2.6;w.fl=0}pedCd=w.ch?.45:1.2;if(!w.ch)S.vf*=.6;crime(50000,'🚶 পথচারীকে ধাক্কা! ছিটকে পড়ল','ped');pedSnd(w.fem);panic(x,z)}}}
 if(G.started&&!G.over&&MOB>0&&beaters>=3&&Math.abs(S.vf)<3){bustT+=dt;BEAT.d.style.opacity=Math.min(1,.35+bustT*.065);const bl=ENCL[PKIND]?BEATL2:BEATL,bsec=Math.max(0,Math.ceil(BUST_T-bustT));if(!BEAT.l||bustT-BEAT.l>1.1){BEAT.l=bustT;BEAT.line=bl[Math.floor(Math.random()*bl.length)];BEAT.sec=-1}if(BEAT.sec!==bsec){BEAT.sec=bsec;BEAT.t.textContent=BEAT.line+'  ⏱ '+bn(bsec)}S.vf*=Math.max(.6,1-dt*1.1);if(bustT>BUST_T){bustT=0;MOB=0;BEAT.d.style.opacity=0;BEAT.l=0;for(const w of WLK){w.ch=0;w.vs=0;w.g.rotation.x=0}G.over=1;endTrip(ENCL[PKIND]?'জনতা গাড়ি ভাঙচুর করে টেনে নামিয়ে গণধোলাই দিল 🥊':'জনতা রাইডারকে টেনে নামিয়ে গণধোলাই দিল 🥊')}}else{bustT=Math.max(0,bustT-dt*1.5);if(bustT<=0){BEAT.d.style.opacity=0;BEAT.l=0}}}
 function panic(x,z){let n=0;for(const w of WLK){if(!w.placed||w.ch||w.hold>0||w.fl>0)continue;const d=Math.hypot(w.g.position.x-x,w.g.position.z-z);if(d<28&&Math.random()<.55){w.fl=4+Math.random()*2.5;n++}if(n>=12)break}}
 
