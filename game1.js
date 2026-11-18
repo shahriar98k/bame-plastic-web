@@ -1391,6 +1391,8 @@ function musicPlay(){if(!MUS.list||!MUS.list.length){toast('🎵 music ফোল
 MUS.a.src='music/'+tr.f;MUS.on=1;const pr=MUS.a.play();if(pr&&pr.catch)pr.catch(()=>{MUS.on=0});toast('🎵 '+tr.t,3)}
 function musicKey(){musicLoad(()=>{if(!MUS.on&&!MUS.order.length)musicShuffle();musicPlay()})}
 function musicStop(){MUS.on=0;if(MUS.a){MUS.a.pause();MUS.a.currentTime=0}toast('🔇 গান বন্ধ',1.6)}
+/* on-screen music buttons for phones: 🎵 start / next song, ⏹ stop (shown while music plays) */
+$('bM').onclick=musicKey;$('bS').onclick=musicStop;setInterval(()=>{$('bM').classList.toggle('on',!!MUS.on);$('bS').style.display=MUS.on?'':'none'},400);
 
 addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.length>1?e.key:e.key.toLowerCase();if(k==='c')cm=(cm+1)%3;if(k==='n')setNight(+!NIGHT);if(k==='m'&&!e.repeat)musicKey();if(k==='s'&&MUS.on&&!e.repeat)musicStop();if(KM[k]){inp[KM[k]]=1;e.preventDefault()}});addEventListener('keyup',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.length>1?e.key:e.key.toLowerCase();if(KM[k])inp[KM[k]]=0});
 /* walking pedestrians (v6 people, animated) - they follow you around the city */
