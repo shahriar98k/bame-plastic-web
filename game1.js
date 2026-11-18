@@ -1379,9 +1379,9 @@ function sfxFlush(){const l=SFXS.pend;SFXS.pend=null;if(l&&Date.now()-SFXS.pt<50
 /* mode 0: skip if another clip is playing | 1: wait for the playing clip to end, then play | 2: cut the playing clip and play now. Returns true if it started. */
 function sfxPlay(list,mode){sfxLoad();if(sfxBusyNow()){if(mode===2)sfxStopNow();else if(mode===1){SFXS.pend=list;SFXS.pt=Date.now();return false}else return false}sfxStart(list);return true}
 function sfxStopIf(k){if(SFXS.cur&&SFXS.cur===SFXA[k]){sfxStopNow();sfxFlush();return true}return false}
-/* woman: one clip per hit, rotating behen -> saali -> dhat | man: tari, then dhat | any vehicle: one clip per hit, rotating dhat -> tari */
-const SFXR={fem:0,veh:0};
-function pedSnd(fem){if(fem){const L=['behen','saali','dhat'];if(sfxPlay([L[SFXR.fem%3]],0))SFXR.fem++}else sfxPlay(['tari','dhat'],0)}
+/* woman: one clip per hit, rotating behen -> saali -> dhat | man: one clip per hit, rotating tari -> dhat | any vehicle: one clip per hit, rotating dhat -> tari */
+const SFXR={fem:0,man:0,veh:0};
+function pedSnd(fem){if(fem){const L=['behen','saali','dhat'];if(sfxPlay([L[SFXR.fem%3]],0))SFXR.fem++}else{const L=['tari','dhat'];if(sfxPlay([L[SFXR.man%2]],0))SFXR.man++}}
 function vehSnd(){const L=['dhat','tari'];if(sfxPlay([L[SFXR.veh%2]],0))SFXR.veh++}
 const SPD={on:0,last:-99,p:0},MOBS={on:0,t:0};
 const MUS={on:0,list:null,order:[],i:0,a:null,t:null};
