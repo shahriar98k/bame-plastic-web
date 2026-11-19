@@ -102,7 +102,7 @@ let dx=p[0],dz=p[1],cust=null,figD=null;
 if(del){const s=side(p);dx=s.x;dz=s.z;cust=pick(KM?CUST_K:CUST_D);figD=person(s.x,s.z,s.ry)}
 const dName=placeName(p[0],p[1],p[4]),d0=dist(o.x,o.z,dx,dz),mult=MULT[PKIND]||1,top=(PV&&PV.top)||15;
 const est=d0/(.55*top)+25;
-const pay=Math.round(((isPax?40+d0*.10:70+d0*.09)*mult)/5)*5;
+const pay=Math.round(((isPax?40+d0*.10:70+d0*.09)*mult*(J.mult||1))/5)*5;
 const job={type:o.type,brand:o.brand,item:o.item,col:o.col,tc:o.tc,dest:{x:dx,z:dz,name:dName},cust,figD,d0,est,pay,t:0,heat:100,imm:2.5,chat:rnd(14,26),slowT:0,
 ico:icon(isPax?'গন্তব্য':(o.type==='med'?'ওষুধ':'খাবার'),'#34d399','#073b2a'),bm:beam(0x34d399)};
 job.ico.position.set(dx,3.4,dz);sc.add(job.ico);job.bm.position.set(dx,0,dz);sc.add(job.bm);
