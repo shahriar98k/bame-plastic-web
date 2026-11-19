@@ -62,6 +62,9 @@ function setNight(n){NIGHT=n;skyCols(n);sc.fog.color.setHex(n?0x29335c:0xcfe0ee)
 
 const GSTEP=60000/7600,gr=new THREE.Mesh(new THREE.PlaneGeometry(3200,3200),new THREE.MeshLambertMaterial({color:0xffffff,map:TXG,polygonOffset:true,polygonOffsetFactor:3,polygonOffsetUnits:3}));gr.rotation.x=-Math.PI/2;if(window.KMODE){gr.scale.set(3.5,3.5,1);const t2=TXG.clone();t2.needsUpdate=true;t2.repeat.multiplyScalar(3.5);gr.material=gr.material.clone();gr.material.map=t2}sc.add(gr);
 const PIL=[],CARTS=[],OBS=[],XBB=[],HIT={t:'',o:null};
+/* billboards can be hit: both posts are knock-down props; the whole board topples */
+const KFALL=[];
+function kBoardOBS(P,x,z,rot,off){const c=Math.cos(rot),s=Math.sin(rot),a=[x+off*c,z-off*s,.75,0,0,'board'],b=[x-off*c,z+off*s,.75,0,0,'board'];a.P=b.P=P;a.pr=b;b.pr=a;OBS.push(a,b)}
 
 /* ===== Kaptai: lake, jetty pier, boats, Kaptai Dhaba, roadside ads ===== */
 const tx=(w,h,fn)=>tex(fn,w,h);let kWB=null,kLB=[];function kWater(x,z){if(!kWB)return 0;let a=0;for(const w of kWB){if(x>w.x0&&x<w.x1&&z>w.z0&&z<w.z1&&inPoly(x,z,w.p)){a=1;break}}if(!a)return 0;for(const w of kLB){if(x>w.x0&&x<w.x1&&z>w.z0&&z<w.z1&&inPoly(x,z,w.p))return 0}try{const q=nrt(x,z);if(q[0]<q[3]/2+3)return 0}catch(e){}return 1}
@@ -106,7 +109,7 @@ for(const sx of[-9,-5])BX(DH,3,2.2,.2,sx,1.5,13.1,M(0x16324f),0);
 {const x0=KAP.dh.x-10.3,x1=KAP.dh.x+12,z0=KAP.dh.z-13,z1=KAP.dh.z+13,nb={p:[x0,z0,x1,z0,x1,z1,x0,z1],x0,x1,z0,z1};XBB.push(nb)}
 /* billboards by the main roads */
 {const bm=new THREE.MeshBasicMaterial({map:tx(1024,320,(c,W,H)=>{c.fillStyle='#c0261c';c.fillRect(0,0,W,H);c.strokeStyle='#ffd60a';c.lineWidth=10;c.strokeRect(12,12,W-24,H-24);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.font='bold 92px '+KFF;c.fillText('কাপ্তাই ধাবা',W/2,86,W*.9);c.font='bold 58px '+KFF;c.fillText('রেস্টুরেন্ট ও রিসোর্ট',W/2,168,W*.9);c.fillStyle='#ffd60a';c.font='bold 40px '+KFF;c.fillText('লেকের ধারে • ১২টি লেক ভিউ রুম • ছাদে রেস্টুরেন্ট • জেটিঘাট',W/2,250,W*.94)})});
-let nb2=0,carry=250;for(const r of D.r){if(r[0]<8)continue;const p=r[1];for(let i=0;i+3<p.length&&nb2<30;i+=2){const dx=p[i+2]-p[i],dz=p[i+3]-p[i+1],L=Math.hypot(dx,dz);if(L<1)continue;if(Math.hypot(p[i],p[i+1])>4200)continue;carry+=L;if(carry<420)continue;carry=0;const nx=-dz/L,nz=dx/L,off=r[0]/2+7,bxp=p[i]+nx*off,bzp=p[i+1]+nz*off;if(kWater(bxp,bzp))continue;const g=new THREE.Group();g.position.set(bxp,0,bzp);g.rotation.y=Math.atan2(-nx,-nz);sc.add(g);BX(g,.25,5.5,.25,-3.2,2.75,0,dark,0);BX(g,.25,5.5,.25,3.2,2.75,0,dark,0);const bd=new THREE.Mesh(new THREE.PlaneGeometry(8.4,2.6),bm);bd.position.set(0,5.6,0);kBoth(g,bd);nb2++}}}
+let nb2=0,carry=250;for(const r of D.r){if(r[0]<8)continue;const p=r[1];for(let i=0;i+3<p.length&&nb2<30;i+=2){const dx=p[i+2]-p[i],dz=p[i+3]-p[i+1],L=Math.hypot(dx,dz);if(L<1)continue;if(Math.hypot(p[i],p[i+1])>4200)continue;carry+=L;if(carry<420)continue;carry=0;const nx=-dz/L,nz=dx/L,off=r[0]/2+7,bxp=p[i]+nx*off,bzp=p[i+1]+nz*off;if(kWater(bxp,bzp))continue;const P=new THREE.Group();P.position.set(bxp,0,bzp);sc.add(P);const g=new THREE.Group();g.rotation.y=Math.atan2(-nx,-nz);P.add(g);BX(g,.25,5.5,.25,-3.2,2.75,0,dark,0);BX(g,.25,5.5,.25,3.2,2.75,0,dark,0);const bd=new THREE.Mesh(new THREE.PlaneGeometry(8.4,2.6),bm);bd.position.set(0,5.6,0);kBoth(g,bd);kBoardOBS(P,bxp,bzp,g.rotation.y,3.2);nb2++}}}
 }
 
 /* ---- Kaptai Dam, Spillway, place signs, bus names, boat ---- */
@@ -178,9 +181,24 @@ const KB={next:2500+Math.random()*3500};
 function kBusTick(dt){if(!window.KMODE||!G.started||PKIND==='boat')return;const d=(typeof TR!=='undefined'&&TR.d)||0;for(const v of VEH){if(!v.rare)continue;if(v.placed){const dx=v.px-S.x,dz=v.pz-S.z;if(dx*dx+dz*dz>330*330){v.placed=false;v.g.visible=false}}else if(d>=KB.next){v.allow=true;const ok=placeNear(v,170,300);v.allow=false;if(ok){v.placed=true;v.g.visible=true;KB.next=d+5000+Math.random()*5000}}}}
 let kBoats=[];
 function kBoatsTick(dt){if(!kBoats.length)return;for(const b of kBoats){b.u+=dt*b.sp/b.L;const f=b.u%2,u=f<1?f:2-f,fw=f<1;b.g.position.set(b.ax+(b.bx-b.ax)*u,Math.sin(performance.now()*.0015+b.ph)*.06,b.az+(b.bz-b.az)*u);const dx=(b.bx-b.ax)*(fw?1:-1),dz=(b.bz-b.az)*(fw?1:-1);b.g.rotation.y=Math.atan2(-dx,-dz);b.g.rotation.z=Math.sin(performance.now()*.001+b.ph)*.03}}
+const KSTAIR={A:[],x:0,z:0,far:true},KST={Z0:-19,Z1:-13,ZT:-1.5,X:-11.9,YT:6.28,DX:-10.2,DZ:-.5},KPH=[5,11.4,1,1.3,0,1.4,1,11.4,5,2];
+function kStairY(z){if(z<=-13)return 0;if(z<-12.5)return .45*(z+13)/.5;return Math.min(KST.YT,.45+.53*(z+12.5))}
+/* people walk up the Dhaba staircase, go in through the open door, come out again and walk down */
+function kStairTick(dt){if(!KSTAIR.A.length)return;const dx=S.x-KSTAIR.x,dz=S.z-KSTAIR.z;if(dx*dx+dz*dz>230*230){if(!KSTAIR.far){KSTAIR.far=true;for(const a of KSTAIR.A)a.g.visible=false}return}KSTAIR.far=false;
+for(const a of KSTAIR.A){a.t+=dt;let t=a.t,p=0;while(p<KPH.length){const d=p===4?a.wait:KPH[p];if(t<d)break;t-=d;p++}if(p>=KPH.length){a.t=0;a.wait=3+Math.random()*6;continue}
+const u=t/(p===4?a.wait:KPH[p]);let x=KST.X,z=0,y=0,vis=true,mv=1,f=null;
+switch(p){case 0:z=KST.Z0+(KST.Z1-KST.Z0)*u;f=[0,1];break;case 1:z=KST.Z1+(KST.ZT-KST.Z1)*u;y=kStairY(z);f=[0,1];break;case 2:z=KST.ZT+(KST.DZ-KST.ZT)*u;y=KST.YT;f=[0,1];break;
+case 3:x=KST.X+(KST.DX-KST.X)*u;z=KST.DZ;y=KST.YT;f=[1,0];vis=u<.98;break;case 4:vis=false;mv=0;x=KST.DX;z=KST.DZ;y=KST.YT;break;
+case 5:x=KST.DX+(KST.X-KST.DX)*u;z=KST.DZ;y=KST.YT;f=[-1,0];vis=u>.02;break;case 6:z=KST.DZ+(KST.ZT-KST.DZ)*u;y=KST.YT;f=[0,-1];break;
+case 7:z=KST.ZT+(KST.Z1-KST.ZT)*u;y=kStairY(z);f=[0,-1];break;case 8:z=KST.Z1+(KST.Z0-KST.Z1)*u;f=[0,-1];vis=u<.85;break;default:vis=false;mv=0}
+a.g.visible=vis;if(!vis)continue;a.g.position.set(x,y,z);if(f)turnY(a.g,Math.atan2(f[0],f[1]),dt,8);a.ph+=dt*6.2;V6.animH(a.g,a.ph,mv)}}
 function kExtras(){if(!window.KMODE)return;
 kCauseway();kSolids();kLandmarks();
 const pick=a=>a[Math.floor(Math.random()*a.length)];
+const KRG=new Map(),KRC=48;
+{const ad=(k,s)=>{let a=KRG.get(k);if(!a)KRG.set(k,a=[]);a.push(s)};for(const r of RD){const p=r[1],hw=r[0]/2,m=hw+12;for(let i=0;i+3<p.length;i+=2){const ax=p[i],az=p[i+1],bx=p[i+2],bz=p[i+3],s=[ax,az,bx,bz,hw],x0=Math.floor((Math.min(ax,bx)-m)/KRC),x1=Math.floor((Math.max(ax,bx)+m)/KRC),z0=Math.floor((Math.min(az,bz)-m)/KRC),z1=Math.floor((Math.max(az,bz)+m)/KRC);for(let a=x0;a<=x1;a++)for(let c=z0;c<=z1;c++)ad(a+','+c,s)}}}
+/* distance from (x,z) to the nearest road surface (negative = on a road) */
+const kRE=(x,z)=>{const l=KRG.get(Math.floor(x/KRC)+','+Math.floor(z/KRC));if(!l)return 1e9;let b=1e9;for(const s of l){const dx=s[2]-s[0],dz=s[3]-s[1],L2=dx*dx+dz*dz||1,u=Math.max(0,Math.min(1,((x-s[0])*dx+(z-s[1])*dz)/L2)),d=Math.hypot(x-s[0]-u*dx,z-s[1]-u*dz)-s[4];if(d<b)b=d}return b};
 const MC=c=>new THREE.MeshLambertMaterial({color:c}),BXm=(P,w,h,d,x,y,z,mat,sh)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);if(sh!==0)m.castShadow=true;m.receiveShadow=true;P.add(m);return m};
 const obb=(cx,cz,th,hw,hd)=>{const c=Math.cos(th),s2=Math.sin(th),pts=[[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(([a,b])=>[cx+a*c+b*s2,cz-a*s2+b*c]);const xs=pts.map(q=>q[0]),zs=pts.map(q=>q[1]);XBB.push({p:pts.flat(),x0:Math.min(...xs),x1:Math.max(...xs),z0:Math.min(...zs),z1:Math.max(...zs)})};
 const palms=[];
@@ -193,7 +211,63 @@ const palms=[];
   const sg=new THREE.Mesh(new THREE.PlaneGeometry(9.6,1.7),kSign(1024,180,'#1b5e20',[['কামাল বোর্ডিং',110]]));sg.position.set(0,3.3,5.55);g.add(sg);obb(cx,cz,thb,7.6,5.8)}
  /* shop row on the other side of the road */
  const sh=KSHOP.slice(0,10),cl=[0xf3e5ab,0xd7e8d0,0xf2c9c0,0xcfe3f2,0xfbe0a8];sh.forEach((nm,i)=>{const d=-62+i*8.6,cx=q.x+tx_*d+rx*(W2+6.8),cz=q.z+tz_*d+rz*(W2+6.8),g=new THREE.Group();g.position.set(cx,0,cz);g.rotation.y=thb;sc.add(g);BXm(g,8,4.6,7.2,0,2.3,0,MC(cl[i%cl.length]));BXm(g,8.4,.3,8.6,0,4.7,-.7,MC(0x8a7f6a),0);BXm(g,8.1,.2,1.6,0,3.6,-4.2,MC(pick([0xc62828,0x1565c0,0x2e7d32,0xef6c00])),0);const sg=new THREE.Mesh(new THREE.PlaneGeometry(7.4,1.3),kSign(512,96,pick(['#b3202a','#1558a8','#0b6e4f','#7a2e8e','#c46a00','#006d77']),[[nm,50]]));sg.rotation.y=Math.PI;sg.position.set(0,3.95,-3.65);g.add(sg);obb(cx,cz,thb,4.1,3.7)});
- for(let d=-80;d<=60;d+=13){for(const sd of[1,-1])palms.push([q.x+tx_*d+(sd>0?lx:rx)*(W2+1.6),q.z+tz_*d+(sd>0?lz:rz)*(W2+1.6),9+Math.random()*4])}}}
+/* ===== Dhaba road: Nizam Telecom (4 shops) and more shops up to the Dhaba on the left of Kamal Boarding, Hotel Al Rayhan (3 shops, 3 floors) on its right, Jetighat Baitus Salam mosque ===== */
+const NF=[],NFin=(x,z)=>NF.some(f=>{const dx=x-f[0],dz=z-f[1],c=Math.cos(f[4]),s=Math.sin(f[4]),a=dx*c-dz*s,b=dx*s+dz*c;return Math.abs(a)<f[2]+1.2&&Math.abs(b)<f[3]+1.2});
+{const FL=W2+1.5,UW=8,UD=7.2,UH=4.6,PITCH=8.6,
+ O=(d,left)=>[q.x+tx_*d+lx*left,q.z+tz_*d+lz*left],
+ add=(P,hw,hd)=>{obb(P[0],P[1],thb,hw,hd);NF.push([P[0],P[1],hw,hd,thb])},
+ wallC=[0xf3e5ab,0xd7e8d0,0xf2c9c0,0xcfe3f2,0xfbe0a8,0xe8d5e8],awC=[0xc62828,0x1565c0,0x2e7d32,0xef6c00,0x6a1b9a,0x00838f],signC=['#b3202a','#1558a8','#0b6e4f','#7a2e8e','#c46a00','#006d77'],
+ glass=new THREE.MeshLambertMaterial({color:0x9fd8f0,transparent:true,opacity:.65}),
+ unit=(d,i,nm)=>{const P=O(d,FL+UD/2),g=new THREE.Group();g.position.set(P[0],0,P[1]);g.rotation.y=thb;sc.add(g);
+  BXm(g,UW,UH,UD,0,UH/2,0,MC(wallC[i%6]));BXm(g,UW+.4,.3,UD+1.2,0,UH+.1,.5,MC(0x8a7f6a),0);
+  BXm(g,UW+.1,.2,1.6,0,3.45,UD/2+.75,MC(awC[i%6]),0);BXm(g,UW-2.6,2.4,.1,-.7,1.4,UD/2+.04,glass,0);BXm(g,1.3,2.3,.12,UW/2-1.2,1.25,UD/2+.05,MC(0x4a3320),0);
+  if(nm){const sg=new THREE.Mesh(new THREE.PlaneGeometry(UW-.6,1.3),kSign(512,96,signC[i%6],[[nm,50]]));sg.position.set(0,UH-.65,UD/2+.07);g.add(sg)}
+  add(P,UW/2+.1,UD/2+.1)},
+ /* one long name board standing on the roofs of a block of shops */
+ board=(d0,d1,txt,bg,hgt)=>{const P=O((d0+d1)/2,FL+.5),wd=d1-d0,g=new THREE.Group();g.position.set(P[0],0,P[1]);g.rotation.y=thb;sc.add(g);const ph=Math.round(2048*(hgt-.4)/(wd-.5));BXm(g,wd,hgt,.3,0,UH+.3+hgt/2,0,MC(0x2b2b2b),0);const sg=new THREE.Mesh(new THREE.PlaneGeometry(wd-.5,hgt-.4),kSign(2048,ph,bg,[[txt,Math.round(ph*.72)]]));sg.position.set(0,UH+.3+hgt/2,.17);g.add(sg)};
+ /* left of Kamal Boarding (towards the Dhaba): Nizam Telecom = 4 shops */
+ const NZ=['মোবাইল ও সিম','ফ্লেক্সিলোড','মোবাইল এক্সেসরিজ','সার্ভিসিং'],nz0=-40.5+.6+UW/2;
+ for(let i=0;i<4;i++)unit(nz0+i*PITCH,i,NZ[i]);board(nz0-UW/2,nz0+3*PITCH+UW/2,'নিজাম টেলিকম','#c62828',2.1);
+ /* then 3 more shops, a gap (an existing house stands there) and 3 shops close to the Dhaba, never touching it */
+ const NX=KSHOP.slice(18,24);let ni=0;for(const dd of[nz0+4*PITCH,nz0+5*PITCH,nz0+6*PITCH,51,59.6,68.2]){unit(dd,4+ni,NX[ni%NX.length]);ni++}
+ /* right of Kamal Boarding: Hotel Al Rayhan = 3 shops wide, 3 floors */
+ {const HW=3*PITCH-.6,HD=9,HH=10.8,P=O(-55.5-.6-HW/2,FL+HD/2),g=new THREE.Group();g.position.set(P[0],0,P[1]);g.rotation.y=thb;sc.add(g);
+  const hf=tx(1024,440,(c,W,H)=>{c.fillStyle='#f1e6c8';c.fillRect(0,0,W,H);const fl=H/3;for(let r=0;r<2;r++){for(let i=0;i<9;i++){const x=30+i*108;c.fillStyle='#2f6a8a';c.fillRect(x,24+r*fl,66,86);c.fillStyle='#e8f4fa';c.fillRect(x+31,24+r*fl,4,86);c.fillStyle='#8a5a2b';c.fillRect(x-8,114+r*fl,82,9)}c.fillStyle='#d9cfae';c.fillRect(0,fl*(r+1)-16,W,16)}
+   const gy=2*fl+2,cols=['#9b2c2c','#1f5f8b','#2e7d32'];for(let u=0;u<3;u++){const x0=u*W/3;c.fillStyle='#fff';c.fillRect(x0+14,gy+14,W/3-28,H-gy-14);c.fillStyle=cols[u];c.fillRect(x0+22,gy+22,W/3-44,26);c.fillStyle='#bfe4f2';c.fillRect(x0+30,gy+58,W/3-110,H-gy-62);c.fillStyle='#4a3320';c.fillRect(x0+W/3-72,gy+58,38,H-gy-62)}});
+  const side=MC(0xe9dcbc),roof=MC(0xb0b0a8);BXm(g,HW,HH,HD,0,HH/2,0,[side,side,roof,roof,new THREE.MeshLambertMaterial({map:hf}),side]);BXm(g,HW+.6,.5,HD+.6,0,HH+.1,0,MC(0xc9c3b0));
+  for(let u=0;u<3;u++)BXm(g,PITCH-.6,.2,1.6,(u-1)*PITCH,3.5,HD/2+.8,MC(awC[u]),0);for(let f=1;f<3;f++)BXm(g,HW,.14,1.1,0,f*3.6-.1,HD/2+.5,MC(0xd9cfae),0);
+  const ph=Math.round(2048*2.6/(HW-1));BXm(g,HW-.6,2.9,.3,0,HH+1.7,HD/2-.25,MC(0x2b2b2b),0);const bd=new THREE.Mesh(new THREE.PlaneGeometry(HW-1,2.6),kSign(2048,ph,'#1b5e20',[['হোটেল আল রাইহান',Math.round(ph*.56)],['আবাসিক ও রেস্টুরেন্ট',Math.round(ph*.26)]]));bd.position.set(0,HH+1.7,HD/2-.07);g.add(bd);
+  add(P,HW/2+.2,HD/2+.2)}
+ /* mosque in front of the Dhaba, on the right-hand side of the road, facing the road */
+ {const mx=-18,mz=48,g=new THREE.Group();g.position.set(mx,0,mz);g.rotation.y=Math.PI;sc.add(g);const cream=MC(0xf3efe2),green=MC(0x1f7a4d),gold=MC(0xd4b45a);
+  const mf=tx(512,256,(c,W,H)=>{c.fillStyle='#f3efe2';c.fillRect(0,0,W,H);for(let i=0;i<5;i++){const x=40+i*92;c.fillStyle='#35694f';c.beginPath();c.moveTo(x,206);c.lineTo(x,96);c.arc(x+22,96,22,Math.PI,0);c.lineTo(x+44,206);c.fill();c.fillStyle='rgba(255,255,255,.4)';for(let k=0;k<4;k++)c.fillRect(x+4+k*9,76,3,126)}c.fillStyle='#35694f';c.fillRect(0,H-26,W,26);c.fillStyle='#d4b45a';c.fillRect(0,H-30,W,4)});
+  BXm(g,22,.6,20,0,.3,0,MC(0xd8d2c0));BXm(g,16,7.5,13,0,4.35,-1.5,[cream,cream,cream,cream,new THREE.MeshLambertMaterial({map:mf}),cream]);
+  BXm(g,16.6,.5,13.6,0,8.35,-1.5,MC(0xe5dfcc));BXm(g,16,.4,4.4,0,6.9,6.0,cream);for(const x of[-7.2,-2.4,2.4,7.2])BXm(g,.6,6.3,.6,x,3.75,7.9,cream,0);
+  for(const s of[-1,1])for(const z of[-6.6,3.6]){const d=new THREE.Mesh(new THREE.SphereGeometry(1.4,14,8,0,Math.PI*2,0,Math.PI/2),green);d.position.set(s*7,8.6,z);g.add(d)}
+  const dm=new THREE.Mesh(new THREE.SphereGeometry(4.3,26,12,0,Math.PI*2,0,Math.PI/2),green);dm.position.set(0,8.6,-1.5);dm.castShadow=true;g.add(dm);const dr=new THREE.Mesh(new THREE.CylinderGeometry(4.4,4.4,.5,24),cream);dr.position.set(0,8.45,-1.5);g.add(dr);
+  const fb=new THREE.Mesh(new THREE.SphereGeometry(.42,10,8),gold);fb.position.set(0,12.9,-1.5);g.add(fb);const fn=new THREE.Mesh(new THREE.ConeGeometry(.25,2.2,8),gold);fn.position.set(0,14,-1.5);g.add(fn);
+  for(const s of[-1,1]){const x2=s*9.6,z2=7.4;const tw=new THREE.Mesh(new THREE.CylinderGeometry(.95,1.1,16,12),cream);tw.position.set(x2,8.6,z2);tw.castShadow=true;g.add(tw);for(const y of[5,10.5]){const rg=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,.35,12),green);rg.position.set(x2,y,z2);g.add(rg)}const bl=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,.4,12),gold);bl.position.set(x2,13.4,z2);g.add(bl);const cp=new THREE.Mesh(new THREE.SphereGeometry(1.25,12,8,0,Math.PI*2,0,Math.PI/2),green);cp.position.set(x2,14.6,z2);g.add(cp);const f2=new THREE.Mesh(new THREE.ConeGeometry(.16,1.5,6),gold);f2.position.set(x2,16.6,z2);g.add(f2)}
+  BXm(g,6,.3,2.6,0,.15,10.5,MC(0xcfc9b6),0);
+  const nbm=kSign(2048,316,'#0b5d3b',[['জেটিঘাট বাইতুস সালাম জামে মসজিদ',200]]);BXm(g,13.9,2.3,.25,0,7.85,8.15,MC(0x2b2b2b),0);const nb=new THREE.Mesh(new THREE.PlaneGeometry(13.6,2.1),nbm);nb.position.set(0,7.85,8.3);g.add(nb);
+  const nb2=new THREE.Mesh(new THREE.PlaneGeometry(10.8,1.65),nbm);nb2.position.set(0,5.4,-8.13);nb2.rotation.y=Math.PI;g.add(nb2);
+  obb(mx,mz,Math.PI,11,10);NF.push([mx,mz,11,10,Math.PI])}
+}
+ for(let d=-80;d<=60;d+=13){for(const sd of[1,-1]){const px_=q.x+tx_*d+(sd>0?lx:rx)*(W2+1.6),pz_=q.z+tz_*d+(sd>0?lz:rz)*(W2+1.6);if(!NFin(px_,pz_))palms.push([px_,pz_,9+Math.random()*4])}}}}
+/* ===== Kaptai Dhaba: open front door at the top of the stairs, awning, lanterns, flowers, bunting, welcome board, and people walking up and down the staircase ===== */
+{const D0=window.KDH;if(D0){const g=new THREE.Group();g.position.set(D0.x,0,D0.z);sc.add(g);
+ const woodC=MC(0x8a5a2b),org=MC(0xe8751a),dk=MC(0x4a3320);
+ BXm(g,2.7,.25,3.4,-11.35,6.17,-.3,woodC);
+ const hall=new THREE.MeshBasicMaterial({map:tx(64,128,(c,W,H)=>{const gr=c.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#7a4a1c');gr.addColorStop(1,'#ffd48a');c.fillStyle=gr;c.fillRect(0,0,W,H)})});
+ BXm(g,.06,2.3,1.8,-10.03,7.45,-.5,hall,0);BXm(g,.3,.25,2.3,-10.15,8.7,-.5,dk,0);BXm(g,.3,2.55,.25,-10.15,7.4,-1.57,dk,0);BXm(g,.3,2.55,.25,-10.15,7.4,.57,dk,0);
+ for(const z of[-1.42,.42])BXm(g,.85,2.2,.07,-10.6,7.4,z,org,0);
+ BXm(g,3.8,.18,4.4,-11.4,9.15,-.3,org,0);for(const z of[-2.3,1.5])BXm(g,.14,2.85,.14,-12.9,7.7,z,dk,0);
+ const lam=new THREE.MeshBasicMaterial({color:0xffc247});for(const z of[-1.8,.9]){const l=new THREE.Mesh(new THREE.SphereGeometry(.2,10,8),lam);l.position.set(-10.9,8.5,z);g.add(l);BXm(g,.02,.5,.02,-10.9,8.85,z,dk,0)}
+ for(const p of[[-12.4,-1.9],[-12.4,1],[-10.55,-2.1]]){const pot=new THREE.Mesh(new THREE.CylinderGeometry(.3,.24,.5,10),MC(0xb5651d));pot.position.set(p[0],6.55,p[1]);g.add(pot);const lf=new THREE.Mesh(new THREE.SphereGeometry(.4,10,8),MC(0x2e8b3a));lf.position.set(p[0],7.05,p[1]);g.add(lf)}
+ {const L=Math.hypot(11,5.8),an=Math.atan2(5.8,11);for(const x of[-12.78,-11.02]){const r=BXm(g,.07,.07,L,x,4.3,-7,dk,0);r.rotation.x=-an}}
+ {const fm=[0xe53935,0xfdd835,0x43a047,0x1e88e5,0xfb8c00].map(c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide})),sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(.55,0);sh.lineTo(.27,-.6);const sg=new THREE.ShapeGeometry(sh);BXm(g,.03,.03,24,-10.45,5.42,0,dk,0);for(let i=0;i<20;i++){const f=new THREE.Mesh(sg,fm[i%5]);f.rotation.y=-Math.PI/2;f.position.set(-10.46,5.4,-11.4+i*1.2);g.add(f)}}
+ {const mt=kSign(512,160,'#0f8f7e',[['স্বাগতম',70],['কাপ্তাই ধাবা রেস্টুরেন্ট',44]]);for(const z of[-18.2,-14.2])BXm(g,.12,2.5,.12,-14.2,1.25,z,dk,0);const b=new THREE.Mesh(new THREE.PlaneGeometry(4,1.25),mt);b.rotation.y=-Math.PI/2;b.position.set(-14.2,2.0,-16.2);kBoth(g,b)}
+ KSTAIR.x=D0.x;KSTAIR.z=D0.z;KSTAIR.far=true;for(let i=0;i<6;i++){const fem=i%3===1,h=V6.mkHuman(V6.humanSpec(fem,{h:.95+Math.random()*.12}),true);h.visible=false;g.add(h);KSTAIR.A.push({g:h,ph:Math.random()*6,t:i*7.4,wait:3+Math.random()*5})}
+}}
 /* ---- I ♥ KAPTAI monument (at the Zero Point viewpoint) ---- */
 {const g=new THREE.Group();g.position.set(-872,0,-503);g.rotation.y=.35;sc.add(g);BXm(g,21,.5,5.2,0,.25,0,MC(0xd32020));BXm(g,19.6,1.9,3.6,0,1.45,0,MC(0x151515));
  const L={I:[[.28,0,.72,1],[.08,0,.92,.16],[.08,.84,.92,1]],K:[[0,0,.26,1],[[.26,.4],[.5,.4],[.9,1],[.64,1]],[[.3,.55],[.58,.55],[.94,0],[.66,0]]],A:[[[0,0],[.27,0],[.6,1],[.35,1]],[[.73,0],[1,0],[.65,1],[.4,1]],[[.2,.2],[.8,.2],[.76,.4],[.24,.4]]],P:[[0,0,.26,1],[0,.76,.88,1],[.62,.42,.88,1],[0,.42,.88,.68]],T:[[0,.82,1,1],[.36,0,.64,.84]]};
@@ -215,15 +289,15 @@ const palms=[];
  const hm=MC(0x4f7d2a);let n=0,t=0;while(n<34&&t<900){t++;const x=30+Math.random()*900,z=-320+Math.random()*640,r=6+Math.random()*16;if(!kWater(x,z)||!kWater(x+r,z)||!kWater(x-r,z))continue;if(Math.hypot(x-ix,z-iz)<26||Math.hypot(x-24,z-64)<30||(x<60&&z>20&&z<80))continue;const d=new THREE.Mesh(new THREE.CircleGeometry(r,10),hm);d.rotation.x=-Math.PI/2;d.position.set(x,.08,z);d.scale.set(1,1.4,1);sc.add(d);n++}
  let nb=0;t=0;while(nb<6&&t<400){t++;const ax=100+Math.random()*900,az=-700+Math.random()*900,a=Math.random()*6.28,L=300+Math.random()*500,bx=ax+Math.cos(a)*L,bz=az+Math.sin(a)*L;let ok=1;for(let k=0;k<=12;k++){const px=ax+(bx-ax)*k/12,pz=az+(bz-az)*k/12;if(!kWater(px,pz)||Math.hypot(px-ix,pz-iz)<40){ok=0;break}}if(!ok)continue;const m=V6.mk('boat');sc.add(m);kBoats.push({g:m,ax,az,bx,bz,L,u:Math.random()*2,sp:2.2+Math.random()*1.6,ph:Math.random()*6});nb++}}
 /* ---- poster billboards (the Kaptai Dhaba poster) beside the main roads + at the Dhaba road ---- */
-{const pm=new THREE.MeshBasicMaterial({map:new THREE.TextureLoader().load('ad.jpg')}),dk=MC(0x4a3320);let cnt=0,carry=120;const put=(bx,bz,fx,fz)=>{const g=new THREE.Group();g.position.set(bx,0,bz);g.rotation.y=Math.atan2(fx,fz);sc.add(g);BXm(g,.3,9.4,.3,-4.2,4.7,0,dk,0);BXm(g,.3,9.4,.3,4.2,4.7,0,dk,0);const b=new THREE.Mesh(new THREE.PlaneGeometry(9.6,7),pm);b.position.set(0,6.1,0);kBoth(g,b)};
+{const pm=new THREE.MeshBasicMaterial({map:new THREE.TextureLoader().load('ad.jpg')}),dk=MC(0x4a3320);let cnt=0,carry=120;const put=(bx,bz,fx,fz)=>{const P=new THREE.Group();P.position.set(bx,0,bz);sc.add(P);const g=new THREE.Group();g.rotation.y=Math.atan2(fx,fz);P.add(g);BXm(g,.3,9.4,.3,-4.2,4.7,0,dk,0);BXm(g,.3,9.4,.3,4.2,4.7,0,dk,0);const b=new THREE.Mesh(new THREE.PlaneGeometry(9.6,7),pm);b.position.set(0,6.1,0);kBoth(g,b);kBoardOBS(P,bx,bz,g.rotation.y,4.2)};
  put(-36,-4,0,1);put(-70,44,0,-1);put(-20,66,-1,0);
  for(const r of D.r){if(r[0]<8)continue;const p=r[1];for(let i=0;i+3<p.length&&cnt<42;i+=2){const dx=p[i+2]-p[i],dz=p[i+3]-p[i+1],L=Math.hypot(dx,dz);if(L<1)continue;if(Math.hypot(p[i],p[i+1])>4200)continue;carry+=L;if(carry<330)continue;carry=0;const nx=dz/L,nz=-dx/L,off=r[0]/2+11,bx=p[i]+nx*off,bz=p[i+1]+nz*off;if(kWater(bx,bz))continue;put(bx,bz,-nx,-nz);cnt++}}}
 /* ---- trees and palms ---- */
 {const N=520,tr=new THREE.InstancedMesh(new THREE.CylinderGeometry(.22,.32,1,6),MC(0x6b4a2b),N),cn=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshLambertMaterial({color:0xffffff}),N),m4=new THREE.Matrix4(),q4=new THREE.Quaternion(),col=new THREE.Color();let n=0,t=0;
- while(n<N&&t<20000){t++;const x=-1800+Math.random()*4800,z=-3000+Math.random()*4200;if(kWater(x,z))continue;let ok=1;try{ok=nrt(x,z)[0]>9&&!hit(x,z)}catch(e){}if(!ok)continue;if(Math.hypot(x-3,z-18)<26)continue;const h=2.2+Math.random()*2.8,r=2.4+Math.random()*3.2;m4.compose(new THREE.Vector3(x,h/2,z),q4,new THREE.Vector3(1,h,1));tr.setMatrixAt(n,m4);m4.compose(new THREE.Vector3(x,h+r*.55,z),q4,new THREE.Vector3(r,r*.9,r));cn.setMatrixAt(n,m4);col.setHSL(.27+Math.random()*.08,.42+Math.random()*.2,.26+Math.random()*.12);cn.setColorAt(n,col);n++}
+ while(n<N&&t<20000){t++;const x=-1800+Math.random()*4800,z=-3000+Math.random()*4200;if(kWater(x,z))continue;let ok=kRE(x,z)>7;if(ok)try{ok=!hit(x,z)}catch(e){}if(!ok)continue;if(Math.hypot(x-3,z-18)<26)continue;const h=2.2+Math.random()*2.8,r=2.4+Math.random()*3.2;m4.compose(new THREE.Vector3(x,h/2,z),q4,new THREE.Vector3(1,h,1));tr.setMatrixAt(n,m4);m4.compose(new THREE.Vector3(x,h+r*.55,z),q4,new THREE.Vector3(r,r*.9,r));cn.setMatrixAt(n,m4);col.setHSL(.27+Math.random()*.08,.42+Math.random()*.2,.26+Math.random()*.12);cn.setColorAt(n,col);n++}
  tr.count=cn.count=n;sc.add(tr);sc.add(cn)
- let t2=0;while(palms.length<80&&t2<3000){t2++;const x=-700+Math.random()*1500,z=-400+Math.random()*800;if(kWater(x,z))continue;let ok=1;try{ok=nrt(x,z)[0]>8&&!hit(x,z)}catch(e){}if(!ok)continue;palms.push([x,z,8+Math.random()*4])}
- {const av=[];for(const r of D.r){if(r[0]<6.4)continue;const p=r[1];let carry=0;for(let i=0;i+3<p.length;i+=2){const dx=p[i+2]-p[i],dz=p[i+3]-p[i+1],L=Math.hypot(dx,dz);if(L<1)continue;const ux=dx/L,uz=dz/L;let d=carry;while(d<L){for(const sd of[1,-1]){const off=r[0]/2+3.4,x=p[i]+ux*d-uz*sd*off,z=p[i+1]+uz*d+ux*sd*off;if(x<-2300||x>3000||z<-1400||z>2600)continue;if(kWater(x,z)||Math.hypot(x-3,z-18)<34)continue;let ok=1;try{ok=nrt(x,z)[0]>1.2&&!hit(x,z)}catch(e){}if(ok&&av.length<900)av.push([x,z])}d+=24}carry=d-L}}
+ let t2=0;while(palms.length<80&&t2<3000){t2++;const x=-700+Math.random()*1500,z=-400+Math.random()*800;if(kWater(x,z))continue;let ok=kRE(x,z)>5;if(ok)try{ok=!hit(x,z)}catch(e){}if(!ok)continue;palms.push([x,z,8+Math.random()*4])}
+ {const av=[];for(const r of D.r){if(r[0]<6.4)continue;const p=r[1];let carry=0;for(let i=0;i+3<p.length;i+=2){const dx=p[i+2]-p[i],dz=p[i+3]-p[i+1],L=Math.hypot(dx,dz);if(L<1)continue;const ux=dx/L,uz=dz/L;let d=carry;while(d<L){for(const sd of[1,-1]){const off=r[0]/2+3.4,x=p[i]+ux*d-uz*sd*off,z=p[i+1]+uz*d+ux*sd*off;if(x<-2300||x>3000||z<-1400||z>2600)continue;if(kWater(x,z)||Math.hypot(x-3,z-18)<34)continue;let ok=kRE(x,z)>1.6;if(ok)try{ok=!hit(x,z)}catch(e){}if(ok&&av.length<900)av.push([x,z])}d+=24}carry=d-L}}
  const at=new THREE.InstancedMesh(new THREE.CylinderGeometry(.14,.2,1,6),MC(0x6b4a2b),av.length),ac=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshLambertMaterial({color:0xffffff}),av.length),co=new THREE.Color();av.forEach((q,i)=>{const h=3+Math.random()*1.6,r=1.9+Math.random()*1.1;m4.compose(new THREE.Vector3(q[0],h/2,q[1]),q4,new THREE.Vector3(1,h,1));at.setMatrixAt(i,m4);m4.compose(new THREE.Vector3(q[0],h+r*.5,q[1]),q4,new THREE.Vector3(r,r*.95,r));ac.setMatrixAt(i,m4);co.setHSL(.27+Math.random()*.06,.5,.28+Math.random()*.1);ac.setColorAt(i,co)});sc.add(at);sc.add(ac);window.KAVENUE=av.length}
 
  const pt=new THREE.InstancedMesh(new THREE.CylinderGeometry(.16,.3,1,6),MC(0x7a5b3a),palms.length),pc=new THREE.InstancedMesh(new THREE.SphereGeometry(1,8,5),MC(0x3d7a2e),palms.length);palms.forEach((q,i)=>{m4.compose(new THREE.Vector3(q[0],q[2]/2,q[1]),q4,new THREE.Vector3(1,q[2],1));pt.setMatrixAt(i,m4);m4.compose(new THREE.Vector3(q[0],q[2]+.2,q[1]),q4,new THREE.Vector3(3.6,1.1,3.6));pc.setMatrixAt(i,m4)});sc.add(pt);sc.add(pc)}
@@ -968,9 +1042,11 @@ function fxTick(dt){for(let i=FXL.length-1;i>=0;i--){const f=FXL[i];f.t+=dt;cons
 function shake(a){S.shk=Math.max(S.shk||0,a)}
 function crashSnd(p){au();if(!AC)return;const n=Math.floor(AC.sampleRate*.35),b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=500+500*p;const g=AC.createGain();g.gain.value=.25+.5*p;s.connect(f);f.connect(g);g.connect(AC.destination);s.start()}
 function debris(x,y,z,vx,vz,cols,n,big){for(let i=0;i<n;i++){const s=big?.4+Math.random()*.7:.2+Math.random()*.35,b=new THREE.Mesh(new THREE.BoxGeometry(s,s*(big?2.6:.7),s),MT(cols[i%cols.length]));b.position.set(x,y,z);b.castShadow=true;sc.add(b);DEB.push({m:b,vx:vx*(.4+Math.random()*.8)+(Math.random()-.5)*5,vy:3+Math.random()*6,vz:vz*(.4+Math.random()*.8)+(Math.random()-.5)*5,rx:(Math.random()-.5)*12,rz:(Math.random()-.5)*12,t:0})}}
-function debTick(dt){for(let i=DEB.length-1;i>=0;i--){const d=DEB[i];d.t+=dt;d.vy-=20*dt;d.m.position.x+=d.vx*dt;d.m.position.z+=d.vz*dt;d.m.position.y+=d.vy*dt;if(d.m.position.y<.12){d.m.position.y=.12;d.vy=Math.abs(d.vy)*.3;d.vx*=.7;d.vz*=.7;d.rx*=.6;d.rz*=.6}d.m.rotation.x+=d.rx*dt;d.m.rotation.z+=d.rz*dt;if(d.t>2.4){d.m.scale.multiplyScalar(.9);if(d.t>3.2){sc.remove(d.m);d.m.geometry.dispose();DEB.splice(i,1)}}}}
+function debTick(dt){for(let i=KFALL.length-1;i>=0;i--){const f=KFALL[i];f.t+=dt;const k=Math.min(1,f.t/1.1),th=1.5*(k*k*(3-2*k))+(f.t>1.1?Math.max(0,Math.sin((f.t-1.1)*9))*.07*Math.exp(-(f.t-1.1)*3):0);f.P.quaternion.setFromAxisAngle(f.ax,th);if(f.t>8)KFALL.splice(i,1)}
+for(let i=DEB.length-1;i>=0;i--){const d=DEB[i];d.t+=dt;d.vy-=20*dt;d.m.position.x+=d.vx*dt;d.m.position.z+=d.vz*dt;d.m.position.y+=d.vy*dt;if(d.m.position.y<.12){d.m.position.y=.12;d.vy=Math.abs(d.vy)*.3;d.vx*=.7;d.vz*=.7;d.rx*=.6;d.rz*=.6}d.m.rotation.x+=d.rx*dt;d.m.rotation.z+=d.rz*dt;if(d.t>2.4){d.m.scale.multiplyScalar(.9);if(d.t>3.2){sc.remove(d.m);d.m.geometry.dispose();DEB.splice(i,1)}}}}
 function zeroV(geo,v0,v1){const a=geo.attributes.position;a.array.fill(0,v0*3,v1*3);a.needsUpdate=true}
 function knock(o,kind){if(o.broken)return;o.broken=1;const hx=Math.sin(S.h)*Math.sign(S.vf||1),hz=-Math.cos(S.h)*Math.sign(S.vf||1),sp=Math.max(3,Math.abs(S.vf));
+if(kind==='board'){if(o.pr)o.pr.broken=1;if(o.P)KFALL.push({P:o.P,t:0,ax:new THREE.Vector3(hz,0,-hx).normalize()});debris(o[0],2.6,o[1],hx*sp*.5,hz*sp*.5,[0xc0261c,0xffd60a,0x4a3320],8,1);crime(12000,'🪧 বিলবোর্ড ভেঙে পড়ল','prop');S.vf*=.9;fx(o[0],2.2,o[1]);shake(.5);crashSnd(.6);return}
 if(kind==='cart'){if(o.m)zeroV(o.m.geometry,o.v0,o.v1);else if(window.CARTGEO)zeroV(window.CARTGEO,o.v0,o.v1);debris(o[0],1.2,o[1],hx*sp*.7,hz*sp*.7,[0xe0245e,0xffd43b,0x12b886,0x339af0,0x7a5230,0xff922b],9,0);crime(15000+Math.floor(RN()*10000),'🛒 পথের দোকান উড়ে গেল!','cart');S.vf*=.9}
 else{const m=o.m||window.SCENM;if(m)zeroV(m.geometry,o[3],o[4]);debris(o[0],2.4,o[1],hx*sp*.5,hz*sp*.5,kind==='tree'?[0x3a8a3a,0x2d6a2d,0x5a3d22]:[0x66666b,0x3a3a3f],kind==='tree'?8:5,1);crime(kind==='tree'?4000:7000,kind==='tree'?'🌳 গাছ ভেঙে পড়ল':'🪧 খুঁটি ভেঙে পড়ল','prop');S.vf*=.94}
 fx(o[0],1.8,o[1]);shake(.45);crashSnd(.55)}
@@ -1363,7 +1439,7 @@ $('ln').textContent='💸 চ্যাডের খুশি ৳'+bn(Math.round(
 engUpdate(v,!!inp.G,dt);voicesTick(dt);
 if(!!inp.H!==hs){hs=!!inp.H;hornOn(hs)}}
 $('bC').onclick=()=>{cm=(cm+1)%3};$('bN').onclick=()=>setNight(+!NIGHT);
-let last=performance.now();let mf=0;function loop(t){let dt=(t-last)/1000;last=t;if(dt>.1)dt=.1;if(G.started)for(let i=0;i<2;i++)step(dt/2);render(dt);rt+=dt;if(G.started){gameTick(dt);endCheck(dt)}animBus(dt);trafficTick(dt);ridersTick(dt);lampTick(dt);adTick(dt);kWaterTick(dt);kBoatsTick(dt);kBusTick(dt);kElevTick(dt);walkTick(dt);debTick(dt);fxTick(dt);chunkTick();hud(dt);qual(dt);if((mf++)%2==0)drawMini();if(rt>.35){rt=0;$('rn').textContent='রাস্তা: '+roadName()}requestAnimationFrame(loop)}
+let last=performance.now();let mf=0;function loop(t){let dt=(t-last)/1000;last=t;if(dt>.1)dt=.1;if(G.started)for(let i=0;i<2;i++)step(dt/2);render(dt);rt+=dt;if(G.started){gameTick(dt);endCheck(dt)}animBus(dt);trafficTick(dt);ridersTick(dt);lampTick(dt);adTick(dt);kWaterTick(dt);kBoatsTick(dt);kStairTick(dt);kBusTick(dt);kElevTick(dt);walkTick(dt);debTick(dt);fxTick(dt);chunkTick();hud(dt);qual(dt);if((mf++)%2==0)drawMini();if(rt>.35){rt=0;$('rn').textContent='রাস্তা: '+roadName()}requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 function hold(id,k){const e=$(id),on=v=>{inp[k]=v;e.classList.toggle('on',!!v)};e.addEventListener('pointerdown',ev=>{ev.preventDefault();on(1)});['pointerup','pointerleave','pointercancel'].forEach(n=>e.addEventListener(n,()=>on(0)));e.addEventListener('contextmenu',ev=>ev.preventDefault())}
 hold('bL','L');hold('bR','R');hold('bG','G');hold('bB','B');hold('bV','V');hold('bH','H');hold('bP','P');
