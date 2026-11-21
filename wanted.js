@@ -84,7 +84,7 @@ const fee=Math.min(Math.max(0,G.cash),500+W.stars*1500+Math.round(dmg*25));G.cas
 toast('🔧 গোপন গ্যারেজ: মেরামত হয়ে গেল'+(wasW?', পুলিশ আপনাকে হারিয়ে ফেলেছে':'')+' — ফি '+money(fee),3.6)}}}
 /* ---------- সাইরেন ---------- */
 let ctx=null,osc=null,gn=null;
-function siren(near){try{if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;ctx=new C();osc=ctx.createOscillator();osc.type='sawtooth';gn=ctx.createGain();gn.gain.value=0;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;osc.connect(lp);lp.connect(gn);gn.connect(ctx.destination);osc.start()}
+function siren(near){if(near<=0){if(!ctx||!W.sOn)return;W.sOn=0}else W.sOn=1;try{if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;ctx=new C();osc=ctx.createOscillator();osc.type='sawtooth';gn=ctx.createGain();gn.gain.value=0;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;osc.connect(lp);lp.connect(gn);gn.connect(ctx.destination);osc.start()}
 if(ctx.state==='suspended')ctx.resume();const t=ctx.currentTime,f=820+300*Math.sin(t*5.2);osc.frequency.setTargetAtTime(f,t,.03);gn.gain.setTargetAtTime(near>0?Math.min(.045,.045*near):0,t,.12)}catch(e){}}
 /* ---------- HUD ---------- */
 let pill=null,lastTxt='';

@@ -193,9 +193,9 @@ ov.textContent=(m==='k'?'কাপ্তাই':'ঢাকা')+' লোড হ�
 setTimeout(function(){try{BPS.set('bp_map',m)}catch(_){}location.reload()},240)},true);
 
 /* ================= হাইলাইট রিপ্লে (ভাইরাল ছবির সঙ্গে) ================= */
-const RW=320,RPRE=20,RPOST=12,RMS=100;let rRing=[],rLast=0,rVir=null,rPend=null;
+const RW=256,RPRE=14,RPOST=8,RMS=170;let rRing=[],rLast=0,rVir=null,rPend=null,rPrev=0,rEma=16;
 function rGrab(){const cv=document.getElementById('g');if(!cv||!cv.width)return null;const h=Math.max(2,Math.round(RW*cv.height/cv.width)),c=document.createElement('canvas');c.width=RW;c.height=h;c.getContext('2d').drawImage(cv,0,0,RW,h);return c}
-function recTick(){if(!G.started)return;const n=performance.now();if(n-rLast>=RMS){rLast=n;const f=rGrab();if(f){rRing.push(f);if(rRing.length>RPRE)rRing.shift();if(rPend){rPend.post.push(f);if(rPend.post.length>=RPOST)finRec()}}}
+function recTick(){if(!G.started)return;const n=performance.now();if(rPrev){rEma=rEma*.95+Math.min(200,n-rPrev)*.05}rPrev=n;if(rEma<=40&&n-rLast>=RMS){rLast=n;const f=rGrab();if(f){rRing.push(f);if(rRing.length>RPRE)rRing.shift();if(rPend){rPend.post.push(f);if(rPend.post.length>=RPOST)finRec()}}}
 if(X.vir&&X.vir!==rVir){rVir=X.vir;X.clip=null;rPend={pre:rRing.slice(),post:[]}}}
 function finRec(){if(!rPend)return;const fr=rPend.pre.concat(rPend.post);rPend=null;if(fr.length>=6)X.clip=fr}
 function rDraw(x,f,w,h,t){x.drawImage(f,0,0,w,h);x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,h-20,w,20);x.fillStyle='#ffd60a';x.font='700 12px "Hind Siliguri","Noto Sans Bengali",sans-serif';x.textBaseline='middle';x.fillText('বামে প্লাস্টিক · স্লো-মো রিপ্লে',8,h-10);if(t%2===0){x.fillStyle='#e53935';x.beginPath();x.arc(w-14,12,5,0,7);x.fill()}}
