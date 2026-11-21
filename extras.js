@@ -146,25 +146,55 @@ X.share=function(){try{const u=X.virURL;if(!u)return;fetch(u).then(r=>r.blob()).
 function totCrash(){let n=0;for(const k in(G.cr||{}))n+=G.cr[k];return n}
 function title(){const km=((typeof TR!=='undefined'&&TR.d)||0)/1000,top=(typeof TR!=='undefined'&&TR.top)||0,t=(typeof TR!=='undefined'&&TR.t)||1,avg=km/(t/3600),c=totCrash(),L=G.loss||0;
 if(J.halal>0&&L>0&&J.halal>=L*.5)return'হালাল চ্যাড সম্রাট';if(c>=15)return'ধাক্কা-সম্রাট';if(top>=120)return'গতির সওদাগর';if(km>.5&&avg<12)return'জ্যামের স্থায়ী বাসিন্দা';if(J.rides+J.dels>=5)return'পেশাদার চালক (প্রায়)';if(c===0&&km>.5)return'ঢাকার বিরল সজ্জন';return'নবীন চ্যাড'}
-function statLines(){const km=((typeof TR!=='undefined'&&TR.d)||0)/1000,top=Math.round((typeof TR!=='undefined'&&TR.top)||0),t=(typeof TR!=='undefined'&&TR.t)||1,avg=km/(t/3600),c=totCrash(),L=G.loss||0,out=[];
-if(km>.05)out.push('🛣️ '+bn(km.toFixed(2))+' কিমি পথ '+bn(Math.max(1,Math.round(t/60)))+' মিনিটে — গড় গতি '+bn(Math.round(avg))+' কিমি/ঘ। '+(avg<15?'জ্যামের সঙ্গে আপনার বন্ধুত্ব গভীর।':avg>45?'এই গতিতে ঢাকায় বাঁচার কথা নয়।':'শহরের গতিতেই চলেছেন, আপত্তি নেই।'));
-if(top>0)out.push('🏁 সর্বোচ্চ গতি '+bn(top)+' কিমি/ঘ — '+(top>=120?'ট্রাফিক পুলিশ ছবি তুলে রাখলে ফ্রেমে বাঁধাতে হতো।':top>=100?'একশ পেরিয়েছেন, আশা করি বিমা আছে।':'গতি সীমার ভেতরেই — অবিশ্বাস্য সংযম।'));
-if(c>0&&km>.05){const per=Math.round(km*1000/c);out.push('💥 মোট '+bn(c)+'টা ধাক্কা — প্রতি '+bn(per)+' মিটারে একটা। '+(per<150?'আপনি রাস্তায় না, ধাক্কার মাঠে নেমেছেন।':per<500?'নিয়মিত ধাক্কা খাওয়াই আপনার অভ্যাস।':'মাঝেমধ্যে ধাক্কা — পুরোপুরি ঢাকাবাসী।'))}
-if(km>.2&&L>0)out.push('💸 প্রতি কিমিতে ক্ষতি '+money(L/km)+' — '+(L/km>300000?'এই হারে চললে ফ্লাইওভার বানানোর বাজেট আপনার একার।':'এখনো ফ্লাইওভারের বাজেটে পৌঁছাননি, চালিয়ে যান।'));
-if(X.maxRain>.5)out.push('🌧️ বৃষ্টির মধ্যে চালিয়েছেন — ওয়াইপার ঠিক ছিল তো?');if(X.maxFog>.5)out.push('🌫️ কুয়াশার মধ্যে চালিয়েছেন — সামনে কী ছিল, আপনিও জানেন না।');
-if(J.fails>=2)out.push('❌ '+bn(J.fails)+' বার রাইড/অর্ডার বাতিল — গ্রাহক সেবায় আপনার রেটিং ১.২।');if(J.rides+J.dels>=5)out.push('🏅 '+bn(J.rides+J.dels)+'টি সফল কাজ — আপনি দায়িত্ববান চালক, ঢাকার বিরল প্রজাতি।');
-return out}
+function statLines(){const km=((typeof TR!=='undefined'&&TR.d)||0)/1000,top=Math.round((typeof TR!=='undefined'&&TR.top)||0),t=(typeof TR!=='undefined'&&TR.t)||1,avg=km/(t/3600),c=totCrash(),L=G.loss||0,o={};
+if(km>.05)o.dist='🛣️ '+bn(km.toFixed(2))+' কিমি পথ '+bn(Math.max(1,Math.round(t/60)))+' মিনিটে — গড় গতি '+bn(Math.round(avg))+' কিমি/ঘ। '+(avg<15?'জ্যামের সঙ্গে আপনার বন্ধুত্ব গভীর।':avg>45?'এই গতিতে ঢাকায় বাঁচার কথা নয়।':'শহরের গতিতেই চলেছেন।');
+if(top>0)o.top='🏁 সর্বোচ্চ গতি '+bn(top)+' কিমি/ঘ — '+(top>=120?'ট্রাফিক পুলিশ ছবি তুলে রাখলে ফ্রেমে বাঁধাতে হতো।':top>=100?'একশ পেরিয়েছেন, আশা করি বিমা আছে।':'গতি সীমার ভেতরেই — অবিশ্বাস্য সংযম।');
+if(c>0&&km>.05){const per=Math.round(km*1000/c);o.crash='💥 '+bn(c)+'টা ধাক্কা — প্রতি '+bn(per)+' মিটারে একটা। '+(per<150?'আপনি রাস্তায় না, ধাক্কার মাঠে নেমেছেন।':per<500?'ধাক্কা খাওয়া আপনার অভ্যাস।':'মাঝেমধ্যে ধাক্কা — পুরোপুরি ঢাকাবাসী।')}
+if(km>.2&&L>0)o.loss='💸 প্রতি কিমিতে ক্ষতি '+money(L/km)+' — '+(L/km>300000?'এই হারে চললে ফ্লাইওভারের বাজেট আপনার একার।':'এখনো ফ্লাইওভারের বাজেটে পৌঁছাননি।');
+if(J.fails>=2)o.fail='❌ '+bn(J.fails)+' বার রাইড/অর্ডার বাতিল — গ্রাহক সেবায় আপনার রেটিং ১.২।';
+if(J.rides+J.dels>=5)o.jobs='🏅 '+bn(J.rides+J.dels)+'টি সফল কাজ — আপনি ঢাকার বিরল প্রজাতি: দায়িত্ববান চালক।';
+if(X.maxRain>.5)o.rain='🌧️ বৃষ্টিতে চালিয়েছেন — ওয়াইপার ঠিক ছিল তো?';else if(X.maxFog>.5)o.rain='🌫️ কুয়াশায় চালিয়েছেন — সামনে কী ছিল, আপনিও জানেন না।';
+const out=[];for(const k of ['crash','top','loss','jobs','fail','rain','dist'])if(o[k]&&out.length<3)out.push(o[k]);return out}
+function altLine(){try{const L=G.loss||0,pk=a=>a[Math.floor(Math.random()*a.length)];return '💭 এই টাকায় যা হতে পারত: '+pk(ALT.ch)(L)}catch(e){return''}}
+window.roastHTML=function(){return''};window.altHTML=function(){return''};
 function score(){const e=document.getElementById('sc'),t=e&&e.querySelector('table');if(!t)return;
+try{t.querySelectorAll('tr').forEach(r=>{const c=r.children[1],l=r.children[0];if(!c||!l)return;const v=c.textContent.trim();if(/⏱|📏/.test(l.textContent))return;if(/^০(\s|$)/.test(v)||v==='৳০')r.remove()})}catch(_){}
 const a=t.nextElementSibling&&t.nextElementSibling.className==='box'?t.nextElementSibling:t;
-let h='<div class="box"><span class="rk">🎖️ খেতাব: '+title()+'</span><br>'+statLines().map(x=>'• '+x).join('<br>')+'</div>';
-const u=buildViral();if(u)h+='<div class="box"><b>📰 ভাইরাল!</b><br><img src="'+u+'" style="width:100%;border-radius:6px;margin-top:6px"><br><a href="'+u+'" download="bame-plastic-viral.jpg" style="font-weight:700;margin-right:12px">💾 ছবি সেভ</a><a href="#" onclick="BPX.share();return false" style="font-weight:700">📤 শেয়ার</a><div style="font-size:11px;opacity:.7;margin-top:4px">* ছবিতে আপনার সবচেয়ে বড় ধাক্কা। খবর কাল্পনিক — হাসির জন্য।</div></div>';
+let h='<div class="box"><span class="rk">🎖️ খেতাব: '+title()+'</span><br>'+statLines().map(x=>'• '+x).join('<br>')+'<div style="font-size:12px;opacity:.75;margin-top:4px">'+altLine()+'</div></div>';
+const u=buildViral();if(u)h+='<div class="box"><b>📰 ভাইরাল!</b><br><img src="'+u+'" style="width:100%;border-radius:6px;margin-top:6px"><br><a href="'+u+'" download="bame-plastic-viral.jpg" style="font-weight:700;margin-right:12px">💾 ছবি সেভ</a><a href="#" onclick="BPX.share();return false" style="font-weight:700">📤 শেয়ার</a></div>';
 a.insertAdjacentHTML('afterend',h)}
 
+/* ================= গান, ধাক্কা-আটকা, গাছ, শুরুর গাড়ি ================= */
+let mPause=0;
+function musicTick(){if(typeof MUS==='undefined'||!MUS.a)return;
+if(mPause){if(!MUS.on){mPause=0;return}if(bustT<=0){try{MUS.a.play()}catch(e){}mPause=0;toast('🎵 গান আবার চলছে',1.6)}return}
+if(MUS.on&&bustT>3){try{MUS.a.pause()}catch(e){}mPause=1;toast('🔇 জনতার হট্টগোলে গান থেমে গেল',2)}}
+function musicOff(){mPause=0;if(typeof MUS!=='undefined'){MUS.on=0;if(MUS.a){try{MUS.a.pause();MUS.a.currentTime=0}catch(e){}}}}
+/* হিট করা গাড়ি ১.১ সেকেন্ড "ভূত" হয়ে যায়, তাই আর আটকে থাকে না */
+function ghostTick(dt){for(const v of VEH){if(v._gh>0){v._gh-=dt;if(v._gh<.7&&Math.hypot(v.px-S.x,v.pz-S.z)<6)v._gh=.7}if(v.cr)v._hc=1;else if(v._hc){v._hc=0;v._gh=1.5}}}
+if(typeof npcContact==='function'){const _nc=window.npcContact;window.npcContact=function(v){if(v._gh>0)return;const x=S.x,z=S.z,r=_nc.apply(this,arguments);if(!X.noGhost&&(S.x!==x||S.z!==z)){v._gh=1.1;v.hold=0}return r}}
+/* কাপ্তাইয়ের গাছ ও পাম: ধাক্কা দিলে ভাঙে (ঢাকার গাছের মতো) */
+function kTrees(){if(!KM||X.treesDone||typeof OBS==='undefined')return;X.treesDone=1;const ms=sc.children.filter(o=>o.isInstancedMesh),m4=new THREE.Matrix4(),zero=new THREE.Matrix4().makeScale(0,0,0);let n=0;
+for(let i=0;i<ms.length-1;i++){const a=ms[i],b=ms[i+1];if(a.geometry.type!=='CylinderGeometry'||b.count!==a.count||!(b.geometry.type==='IcosahedronGeometry'||b.geometry.type==='SphereGeometry'))continue;
+const rad=b.geometry.type==='SphereGeometry'?.45:.6;
+for(let j=0;j<a.count;j++){a.getMatrixAt(j,m4);const x=m4.elements[12],z=m4.elements[14];const o=[x,z,rad,0,0,'tree'];const hide=()=>{a.setMatrixAt(j,zero);b.setMatrixAt(j,zero);a.instanceMatrix.needsUpdate=true;b.instanceMatrix.needsUpdate=true};o.m={geometry:{attributes:{position:{array:{fill:hide},needsUpdate:false}}}};OBS.push(o);n++}i++}
+X.treeN=n}
+/* কাপ্তাইয়ের শুরুতে বাসের বদলে গাড়ি */
+function kStartCar(){if(!KM||typeof PV==='undefined'||typeof setPlayer!=='function')return;const k=(PKIND&&PKIND!=='bus')?PKIND:'car';let isBus=false;try{isBus=PV.kind==='bus'||Object.values(V6.BUSES).indexOf(bus)>=0}catch(e){}if(isBus||PV.kind!==k){try{setPlayer(k,Math.floor(Math.random()*PCFG[k].models.length))}catch(e){}}}
+kStartCar();kTrees();
+
+
+/* ================= মানচিত্র বদল: আগে মসৃণ ফেড, তারপর রিলোড ================= */
+document.addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#mp button');if(!b)return;const cur=window.BPMAP==='k'?'k':'d',m=b.dataset.m;if(m===cur)return;e.stopPropagation();e.preventDefault();
+let ov=document.getElementById('swp');if(!ov){ov=document.createElement('div');ov.id='swp';ov.style.cssText="position:fixed;inset:0;z-index:99;background:#0d1b2a;color:#ffd60a;display:flex;align-items:center;justify-content:center;font:800 24px 'Hind Siliguri',sans-serif;opacity:0;transition:opacity .22s";document.body.appendChild(ov)}
+ov.textContent=(m==='k'?'কাপ্তাই':'ঢাকা')+' লোড হচ্ছে…';void ov.offsetWidth;ov.style.opacity='1';try{sessionStorage.setItem('bp_sw',m)}catch(_){}
+setTimeout(function(){try{BPS.set('bp_map',m)}catch(_){}location.reload()},240)},true);
+
 /* ================= হুক ================= */
-function tick(dt){if(!G.started||G.over)return;X.t+=dt;evTick(dt);wxTick(dt);newsTick(dt)}
+function tick(dt){if(!G.started)return;ghostTick(dt);musicTick();if(G.over)return;X.t+=dt;evTick(dt);wxTick(dt);newsTick(dt)}
 function mini(){const e=X.ev;if(!e)return;const c=MC,Xp=(e.cx-S.x)*K,Yp=(e.cz-S.z)*K,ca=Math.cos(-S.h),sa=Math.sin(-S.h);let px=Xp*ca-Yp*sa,py=Xp*sa+Yp*ca;const r=Math.hypot(px,py),lim=132;if(r>lim){px*=lim/r;py*=lim/r}
 c.save();c.translate(150,150);c.fillStyle='#ff8a00';c.strokeStyle='#fff';c.lineWidth=3;c.beginPath();c.moveTo(px,py-10);c.lineTo(px+9,py+7);c.lineTo(px-9,py+7);c.closePath();c.fill();c.stroke();c.restore()}
-function cleanup(){clearEv();try{speechSynthesis.cancel()}catch(e){}X.q.length=0;X.cur=null;rdo.style.display='none';if(wa){try{wa.gn.gain.value=0}catch(e){}}if(fogBase&&sc.fog){sc.fog.near=fogBase.n;sc.fog.far=fogBase.f}wxd.style.opacity='0';wxf.style.opacity='0';if(rcx)rcx.clearRect(0,0,rw,rh)}
+function cleanup(){musicOff();clearEv();try{speechSynthesis.cancel()}catch(e){}X.q.length=0;X.cur=null;rdo.style.display='none';if(wa){try{wa.gn.gain.value=0}catch(e){}}if(fogBase&&sc.fog){sc.fog.near=fogBase.n;sc.fog.far=fogBase.f}wxd.style.opacity='0';wxf.style.opacity='0';if(rcx)rcx.clearRect(0,0,rw,rh)}
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return o.apply(this,arguments)}}
 after('gameTick',tick);after('hud',capture);after('drawMini',mini);after('crime',onCrime);after('showScore',score);before('endTrip',cleanup);

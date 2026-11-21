@@ -225,9 +225,10 @@ const NF=[],NFin=(x,z)=>NF.some(f=>{const dx=x-f[0],dz=z-f[1],c=Math.cos(f[4]),s
   add(P,UW/2+.1,UD/2+.1)},
  /* one long name board standing on the roofs of a block of shops */
  board=(d0,d1,txt,bg,hgt)=>{const P=O((d0+d1)/2,FL+.5),wd=d1-d0,g=new THREE.Group();g.position.set(P[0],0,P[1]);g.rotation.y=thb;sc.add(g);const ph=Math.round(2048*(hgt-.4)/(wd-.5));BXm(g,wd,hgt,.3,0,UH+.3+hgt/2,0,MC(0x2b2b2b),0);const sg=new THREE.Mesh(new THREE.PlaneGeometry(wd-.5,hgt-.4),kSign(2048,ph,bg,[[txt,Math.round(ph*.72)]]));sg.position.set(0,UH+.3+hgt/2,.17);g.add(sg)};
- /* left of Kamal Boarding (towards the Dhaba): Nizam Telecom = 4 shops */
- const NZ=['মোবাইল ও সিম','ফ্লেক্সিলোড','মোবাইল এক্সেসরিজ','সার্ভিসিং'],nz0=-40.5+.6+UW/2;
- for(let i=0;i<4;i++)unit(nz0+i*PITCH,i,NZ[i]);board(nz0-UW/2,nz0+3*PITCH+UW/2,'নিজাম টেলিকম','#c62828',2.1);
+ /* left of Kamal Boarding (towards the Dhaba): ONE Nizam Telecom shop, then other shops */
+ const nz0=-40.5+.6+UW/2;
+ unit(nz0,0,'মোবাইল ও সিম');board(nz0-UW/2,nz0+UW/2,'নিজাম টেলিকম','#c62828',2.1);
+ for(let i=1;i<4;i++)unit(nz0+i*PITCH,i,['','পাহাড় স্টোর','কাপ্তাই টেইলার্স','মনিহারী দোকান'][i]);
  /* then 3 more shops, a gap (an existing house stands there) and 3 shops close to the Dhaba, never touching it */
  const NX=KSHOP.slice(18,24);let ni=0;for(const dd of[nz0+4*PITCH,nz0+5*PITCH,nz0+6*PITCH,51,59.6,68.2]){unit(dd,4+ni,NX[ni%NX.length]);ni++}
  /* right of Kamal Boarding: Hotel Al Rayhan = 3 shops wide, 3 floors */
