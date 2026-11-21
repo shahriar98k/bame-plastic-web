@@ -50,7 +50,7 @@ for(const q of [[.3,.7],[-.3,.7],[.3,-.7],[-.3,-.7]])add(.2,.7,.2,d,q[0],.4,q[1]
 function tyre(){const g=new THREE.Group(),t=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.35,12),MT(0x151515));t.rotation.x=Math.PI/2;t.position.y=.55;g.add(t);
 const f=new THREE.Mesh(new THREE.ConeGeometry(.32,1,6),new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:.85,fog:false}));f.position.y=1.3;g.add(f);g.userData.own=1;g.userData.flame=f;sc.add(g);return g}
 function stumps(){const g=new THREE.Group();for(const x of[-.14,0,.14]){const m=new THREE.Mesh(new THREE.BoxGeometry(.04,.7,.04),MT(0xe8d9a0));m.position.set(x,.35,0);g.add(m)}g.userData.own=1;sc.add(g);return g}
-const EVT=KM?[['cow',.35],['cricket',.25],['tour',.4]]:[['cow',.2],['cricket',.25],['wedding',.25],['hartal',.15],['cow',.15]];
+const EVT=KM?[['tour',1]]:[['wedding',.6],['hartal',.4]];
 const EVN={cow:{n:'গরু',t:'🐄 সামনে গরু রাস্তায় — ঈদের আগেই হাট বসে গেছে!',col:'#8d6e63',ttl:130},cricket:{n:'ক্রিকেট',t:'🏏 রাস্তায় ক্রিকেট চলছে — আম্পায়ার কিন্তু ট্রাফিক পুলিশ নয়!',col:'#2e7d32',ttl:140},wedding:{n:'বরযাত্রী',t:'🎺 বরযাত্রী যাচ্ছে — বাজনা ও নাচে রাস্তা বন্ধ!',col:'#c2185b',ttl:150},hartal:{n:'হরতাল',t:'🔥 সামনে হরতাল — টায়ার জ্বলছে, ঝুঁকি নিলে নিজ দায়িত্বে!',col:'#e65100',ttl:75},tour:{n:'সেলফি',t:'📸 পর্যটকরা রাস্তায় সেলফি তুলছে — লেক দেখলে সবারই মাথা খারাপ!',col:'#1976d2',ttl:140}};
 function wpick(l){let t=0;for(const e of l)t+=e[1];let r=Math.random()*t;for(const e of l){r-=e[1];if(r<=0)return e[0]}return l[0][0]}
 function spawnEv(){const fx=Math.sin(S.h),fz=-Math.cos(S.h);let l=T.ring(S.x,S.z,230,430,fx,fz);if(!l.length)l=T.ring(S.x,S.z,120,700,fx,fz);if(!l.length){X.evCd=20;return}
@@ -90,7 +90,7 @@ if(!e.said&&d<45&&e.type==='tour'){e.said=1;toast('📸 পর্যটকের
 if(!e.said&&d<45&&e.type==='wedding'){e.said=1;toast('🎺 বর বলছে: "আমার বিয়ে নষ্ট কইরেন না ভাই!"',2.6)}}
 
 /* ================= আবহাওয়া ================= */
-const WXW=KM?[['clear',.5],['rain',.25],['fog',.25]]:[['clear',.42],['rain',.25],['fog',.13],['eid',.2]];
+const WXW=KM?[['clear',.65],['rain',.35]]:[['clear',.5],['rain',.28],['eid',.22]];
 const WXT={rain:KM?'🌧️ লেকের ওপর মেঘ জমেছে — বৃষ্টি নামছে, রাস্তা পিচ্ছিল!':'🌧️ বৃষ্টি শুরু! ঢাকার রাস্তা এখন নদী — আস্তে চালান।',fog:'🌫️ কুয়াশা নামছে — সামনে দেখা কঠিন, সাবধান!',eid:'🌙 ঈদের আগের দিন! রাস্তায় মানুষের ঢল — ভাড়া দেড়গুণ, কাজও বেশি।',clear:'☀️ আকাশ পরিষ্কার হচ্ছে — আবহাওয়া এখন ভালো।'};
 const WXN={rain:KM?'কাপ্তাই লেকের ওপর বৃষ্টি শুরু, পথঘাট পিচ্ছিল':'ঢাকায় ভারী বৃষ্টি শুরু; কয়েক জায়গায় জলাবদ্ধতার খবর',fog:'ঘন কুয়াশায় দৃষ্টিসীমা কমে গেছে; চালকদের সাবধানে চলার অনুরোধ',eid:'ঈদের আগের দিন: রাস্তায় যাত্রীর ঢল, ভাড়া বেড়েছে দেড়গুণ',clear:'আকাশ পরিষ্কার হয়ে আসছে'};
 let fogBase=null,drops=null,rcx=null,rw=0,rh=0,wa=null;
@@ -175,9 +175,11 @@ function ghostTick(dt){for(const v of VEH){if(v._gh>0){v._gh-=dt;if(v._gh<.7&&Ma
 if(typeof npcContact==='function'){const _nc=window.npcContact;window.npcContact=function(v){if(v._gh>0)return;const x=S.x,z=S.z,r=_nc.apply(this,arguments);if(!X.noGhost&&(S.x!==x||S.z!==z)){v._gh=1.1;v.hold=0}return r}}
 /* কাপ্তাইয়ের গাছ ও পাম: ধাক্কা দিলে ভাঙে (ঢাকার গাছের মতো) */
 function kTrees(){if(!KM||X.treesDone||typeof OBS==='undefined')return;X.treesDone=1;const ms=sc.children.filter(o=>o.isInstancedMesh),m4=new THREE.Matrix4(),zero=new THREE.Matrix4().makeScale(0,0,0);let n=0;
+const G2=new Map();RD.forEach(rd=>{const p=rd[1],w=rd[0];for(let i=0;i+3<p.length;i+=2){const L=Math.hypot(p[i+2]-p[i],p[i+3]-p[i+1]),c=Math.max(1,Math.ceil(L/20));for(let k=0;k<=c;k++){const x=p[i]+(p[i+2]-p[i])*k/c,z=p[i+1]+(p[i+3]-p[i+1])*k/c,key=Math.floor(x/40)+','+Math.floor(z/40);let l=G2.get(key);if(!l)G2.set(key,l=[]);l.push([p[i],p[i+1],p[i+2],p[i+3],w])}}});
+const onRd=(x,z)=>{const cx=Math.floor(x/40),cz=Math.floor(z/40);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l=G2.get((cx+a)+','+(cz+b));if(!l)continue;for(const s of l){const dx=s[2]-s[0],dz=s[3]-s[1],q=dx*dx+dz*dz||1;let t=((x-s[0])*dx+(z-s[1])*dz)/q;t=t<0?0:t>1?1:t;if(Math.hypot(x-s[0]-dx*t,z-s[1]-dz*t)<Math.max(s[4],3)/2+1.3)return true}}return false};
 for(let i=0;i<ms.length-1;i++){const a=ms[i],b=ms[i+1];if(a.geometry.type!=='CylinderGeometry'||b.count!==a.count||!(b.geometry.type==='IcosahedronGeometry'||b.geometry.type==='SphereGeometry'))continue;
 const rad=b.geometry.type==='SphereGeometry'?.45:.6;
-for(let j=0;j<a.count;j++){a.getMatrixAt(j,m4);const x=m4.elements[12],z=m4.elements[14];const o=[x,z,rad,0,0,'tree'];const hide=()=>{a.setMatrixAt(j,zero);b.setMatrixAt(j,zero);a.instanceMatrix.needsUpdate=true;b.instanceMatrix.needsUpdate=true};o.m={geometry:{attributes:{position:{array:{fill:hide},needsUpdate:false}}}};OBS.push(o);n++}i++}
+for(let j=0;j<a.count;j++){a.getMatrixAt(j,m4);const x=m4.elements[12],z=m4.elements[14];if(onRd(x,z)){a.setMatrixAt(j,zero);b.setMatrixAt(j,zero);a.instanceMatrix.needsUpdate=true;b.instanceMatrix.needsUpdate=true;continue}const o=[x,z,rad,0,0,'tree'];const hide=()=>{a.setMatrixAt(j,zero);b.setMatrixAt(j,zero);a.instanceMatrix.needsUpdate=true;b.instanceMatrix.needsUpdate=true};o.m={geometry:{attributes:{position:{array:{fill:hide},needsUpdate:false}}}};OBS.push(o);n++}i++}
 X.treeN=n}
 /* কাপ্তাইয়ের শুরুতে বাসের বদলে গাড়ি */
 function kStartCar(){if(!KM||typeof PV==='undefined'||typeof setPlayer!=='function')return;const k=(PKIND&&PKIND!=='bus')?PKIND:'car';let isBus=false;try{isBus=PV.kind==='bus'||Object.values(V6.BUSES).indexOf(bus)>=0}catch(e){}if(isBus||PV.kind!==k){try{setPlayer(k,Math.floor(Math.random()*PCFG[k].models.length))}catch(e){}}}
@@ -197,6 +199,7 @@ c.save();c.translate(150,150);c.fillStyle='#ff8a00';c.strokeStyle='#fff';c.lineW
 function cleanup(){musicOff();clearEv();try{speechSynthesis.cancel()}catch(e){}X.q.length=0;X.cur=null;rdo.style.display='none';if(wa){try{wa.gn.gain.value=0}catch(e){}}if(fogBase&&sc.fog){sc.fog.near=fogBase.n;sc.fog.far=fogBase.f}wxd.style.opacity='0';wxf.style.opacity='0';if(rcx)rcx.clearRect(0,0,rw,rh)}
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return o.apply(this,arguments)}}
+{const o=window.step;if(typeof o==='function')window.step=function(dt){const v0=S.vf;o.apply(this,arguments);const v1=S.vf;if(G.over||!isFinite(v1))return;const k=(inp.B||inp.V)?3.2:5;S.vf=(v1===0&&Math.abs(v0)<.3)?0:v0+(v1-v0)*Math.min(1,k*dt)}}
 after('gameTick',tick);after('hud',capture);after('drawMini',mini);after('crime',onCrime);after('showScore',score);before('endTrip',cleanup);
 window.BPX_T={tick,spawnEv,clearEv,wxTick,news,statLines,title,buildViral,capture,onCrime};
 })();
