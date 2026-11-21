@@ -161,8 +161,8 @@ function score(){const e=document.getElementById('sc'),t=e&&e.querySelector('tab
 try{t.querySelectorAll('tr').forEach(r=>{const c=r.children[1],l=r.children[0];if(!c||!l)return;const v=c.textContent.trim();if(/⏱|📏/.test(l.textContent))return;if(/^০(\s|$)/.test(v)||v==='৳০')r.remove()})}catch(_){}
 const a=t.nextElementSibling&&t.nextElementSibling.className==='box'?t.nextElementSibling:t;
 let h='<div class="box"><span class="rk">🎖️ খেতাব: '+title()+'</span><br>'+statLines().map(x=>'• '+x).join('<br>')+'<div style="font-size:12px;opacity:.75;margin-top:4px">'+altLine()+'</div></div>';
-const u=buildViral();if(u)h+='<div class="box"><b>📰 ভাইরাল!</b><br><img src="'+u+'" style="width:100%;border-radius:6px;margin-top:6px"><br><a href="'+u+'" download="bame-plastic-viral.jpg" style="font-weight:700;margin-right:12px">💾 ছবি সেভ</a><a href="#" onclick="BPX.share();return false" style="font-weight:700">📤 শেয়ার</a></div>';
-a.insertAdjacentHTML('afterend',h)}
+const u=buildViral();if(u)h+='<div class="box"><b>📰 ভাইরাল!</b><br><img id="vimg" src="'+u+'" style="width:100%;border-radius:6px;margin-top:6px"><br><a href="'+u+'" download="bame-plastic-viral.jpg" style="font-weight:700;margin-right:12px">💾 ছবি সেভ</a><a href="#" onclick="BPX.share();return false" style="font-weight:700">📤 শেয়ার</a>'+replayHTML()+'</div>';
+a.insertAdjacentHTML('afterend',h);try{wireReplay()}catch(e){}}
 
 /* ================= গান, ধাক্কা-আটকা, গাছ, শুরুর গাড়ি ================= */
 let mPause=0;
@@ -192,14 +192,28 @@ let ov=document.getElementById('swp');if(!ov){ov=document.createElement('div');o
 ov.textContent=(m==='k'?'কাপ্তাই':'ঢাকা')+' লোড হচ্ছে…';void ov.offsetWidth;ov.style.opacity='1';try{sessionStorage.setItem('bp_sw',m)}catch(_){}
 setTimeout(function(){try{BPS.set('bp_map',m)}catch(_){}location.reload()},240)},true);
 
+/* ================= হাইলাইট রিপ্লে (ভাইরাল ছবির সঙ্গে) ================= */
+const RW=320,RPRE=20,RPOST=12,RMS=100;let rRing=[],rLast=0,rVir=null,rPend=null;
+function rGrab(){const cv=document.getElementById('g');if(!cv||!cv.width)return null;const h=Math.max(2,Math.round(RW*cv.height/cv.width)),c=document.createElement('canvas');c.width=RW;c.height=h;c.getContext('2d').drawImage(cv,0,0,RW,h);return c}
+function recTick(){if(!G.started)return;const n=performance.now();if(n-rLast>=RMS){rLast=n;const f=rGrab();if(f){rRing.push(f);if(rRing.length>RPRE)rRing.shift();if(rPend){rPend.post.push(f);if(rPend.post.length>=RPOST)finRec()}}}
+if(X.vir&&X.vir!==rVir){rVir=X.vir;X.clip=null;rPend={pre:rRing.slice(),post:[]}}}
+function finRec(){if(!rPend)return;const fr=rPend.pre.concat(rPend.post);rPend=null;if(fr.length>=6)X.clip=fr}
+function rDraw(x,f,w,h,t){x.drawImage(f,0,0,w,h);x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,h-20,w,20);x.fillStyle='#ffd60a';x.font='700 12px "Hind Siliguri","Noto Sans Bengali",sans-serif';x.textBaseline='middle';x.fillText('বামে প্লাস্টিক · স্লো-মো রিপ্লে',8,h-10);if(t%2===0){x.fillStyle='#e53935';x.beginPath();x.arc(w-14,12,5,0,7);x.fill()}}
+function replayHTML(){if(!X.clip)return'';return'<div style="margin-top:8px"><a href="#" id="rpb" style="font-weight:700;margin-right:12px">🎬 রিপ্লে দেখুন</a>'+(window.MediaRecorder?'<a href="#" id="rps" style="font-weight:700">🎞️ ভিডিও শেয়ার</a>':'')+'</div>'}
+function wireReplay(){if(X.rpT){clearInterval(X.rpT);X.rpT=0}const b=document.getElementById('rpb'),im=document.getElementById('vimg');if(!b||!im||!X.clip)return;const fr=X.clip,w=fr[0].width,h=fr[0].height;let cv=null,i=0;
+const stop=()=>{if(X.rpT){clearInterval(X.rpT);X.rpT=0}if(cv){cv.remove();cv=null}im.style.display='';b.textContent='🎬 রিপ্লে দেখুন'};
+b.onclick=e=>{e.preventDefault();if(cv){stop();return}cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.style.cssText='width:100%;border-radius:6px;margin-top:6px';im.style.display='none';im.parentNode.insertBefore(cv,im);b.textContent='⏹ ছবি দেখুন';const x=cv.getContext('2d');i=0;X.rpT=setInterval(()=>{rDraw(x,fr[i%fr.length],w,h,i);i++},125)};
+const sv=document.getElementById('rps');if(sv)sv.onclick=e=>{e.preventDefault();if(sv.dataset.b)return;sv.dataset.b=1;const old=sv.textContent;sv.textContent='⏳ তৈরি হচ্ছে…';try{const c2=document.createElement('canvas');c2.width=w;c2.height=h;const x=c2.getContext('2d'),st=c2.captureStream(8),mt=['video/webm;codecs=vp8','video/webm','video/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'',mr=new MediaRecorder(st,mt?{mimeType:mt}:{}),ch=[];mr.ondataavailable=ev=>{if(ev.data&&ev.data.size)ch.push(ev.data)};
+mr.onstop=()=>{sv.textContent=old;delete sv.dataset.b;const ty=(mr.mimeType||'video/webm').split(';')[0],ext=ty.indexOf('mp4')>=0?'mp4':'webm',bl=new Blob(ch,{type:ty}),f=new File([bl],'bame-plastic-replay.'+ext,{type:ty});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:'বামে প্লাস্টিক'}).catch(()=>{});else{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=f.name;a.click()}};
+mr.start();let k=0;const t=setInterval(()=>{if(k>=fr.length*2){clearInterval(t);mr.stop();return}rDraw(x,fr[k%fr.length],w,h,k);k++},125)}catch(err){sv.textContent=old;delete sv.dataset.b}}}
 /* ================= হুক ================= */
 function tick(dt){if(!G.started)return;ghostTick(dt);musicTick();if(G.over)return;X.t+=dt;evTick(dt);wxTick(dt);newsTick(dt)}
 function mini(){const e=X.ev;if(!e)return;const c=MC,Xp=(e.cx-S.x)*K,Yp=(e.cz-S.z)*K,ca=Math.cos(-S.h),sa=Math.sin(-S.h);let px=Xp*ca-Yp*sa,py=Xp*sa+Yp*ca;const r=Math.hypot(px,py),lim=132;if(r>lim){px*=lim/r;py*=lim/r}
 c.save();c.translate(150,150);c.fillStyle='#ff8a00';c.strokeStyle='#fff';c.lineWidth=3;c.beginPath();c.moveTo(px,py-10);c.lineTo(px+9,py+7);c.lineTo(px-9,py+7);c.closePath();c.fill();c.stroke();c.restore()}
-function cleanup(){musicOff();clearEv();try{speechSynthesis.cancel()}catch(e){}X.q.length=0;X.cur=null;rdo.style.display='none';if(wa){try{wa.gn.gain.value=0}catch(e){}}if(fogBase&&sc.fog){sc.fog.near=fogBase.n;sc.fog.far=fogBase.f}wxd.style.opacity='0';wxf.style.opacity='0';if(rcx)rcx.clearRect(0,0,rw,rh)}
+function cleanup(){finRec();musicOff();clearEv();try{speechSynthesis.cancel()}catch(e){}X.q.length=0;X.cur=null;rdo.style.display='none';if(wa){try{wa.gn.gain.value=0}catch(e){}}if(fogBase&&sc.fog){sc.fog.near=fogBase.n;sc.fog.far=fogBase.f}wxd.style.opacity='0';wxf.style.opacity='0';if(rcx)rcx.clearRect(0,0,rw,rh)}
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return o.apply(this,arguments)}}
 {const o=window.step;if(typeof o==='function')window.step=function(dt){const v0=S.vf;o.apply(this,arguments);const v1=S.vf;if(G.over||!isFinite(v1))return;const k=(inp.B||inp.V)?3.2:5;S.vf=(v1===0&&Math.abs(v0)<.3)?0:v0+(v1-v0)*Math.min(1,k*dt)}}
-after('gameTick',tick);after('hud',capture);after('drawMini',mini);after('crime',onCrime);after('showScore',score);before('endTrip',cleanup);
+after('gameTick',tick);after('hud',capture);after('hud',recTick);after('drawMini',mini);after('crime',onCrime);after('showScore',score);before('endTrip',cleanup);
 window.BPX_T={tick,spawnEv,clearEv,wxTick,news,statLines,title,buildViral,capture,onCrime};
 })();
