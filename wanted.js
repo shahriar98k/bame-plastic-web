@@ -27,6 +27,7 @@ function side(g,m,w,h,x,y,z){const a=new THREE.Mesh(pg(w,h),m);a.position.set(x,
 function face(g,m,w,h,x,y,z,back){const a=new THREE.Mesh(pg(w,h),m);a.position.set(x,y,z);if(!back)a.rotation.y=Math.PI;g.add(a)}
 function B(g){return(w,h,l,x,y,z,c,rx)=>{const m=new THREE.Mesh(geo(w,h,l),c&&c.isMaterial?c:mat(c));m.position.set(x,y,z);if(rx)m.rotation.x=rx;g.add(m);return m}}
 function wheel(g,r,w,x,y,z,hub){const k=r+','+w;const G2=WG[k]||(WG[k]=new THREE.CylinderGeometry(r,r,w,14));const t=new THREE.Mesh(G2,mat(0x101010));t.rotation.z=Math.PI/2;t.position.set(x,y,z);g.add(t);const hk='h'+k,H2=WG[hk]||(WG[hk]=new THREE.CylinderGeometry(r*.6,r*.6,w+.05,12));const h=new THREE.Mesh(H2,mat(hub||0xb4bac0));h.rotation.z=Math.PI/2;h.position.set(x,y,z);g.add(h)}
+function top(g,m,w,h,x,y,z){const a=new THREE.Mesh(pg(w,h),m);a.position.set(x,y,z);a.rotation.x=-Math.PI/2;g.add(a)}
 function lightbar(g,x,y,z,len){const b=B(g);b(len,.06,.34,x,y-.07,z,0x1a1a1a);b(len*.42,.14,.3,x-len*.29,y,z,g.userData.bm);b(len*.16,.14,.3,x,y,z,0xdddddd);b(len*.42,.14,.3,x+len*.29,y,z,g.userData.lm)}
 function lamps(g,hx,hy,hz,tz,tw){const b=B(g);for(const s of[-1,1]){b(.34,.2,.06,s*hx,hy,hz,bmat(0xfff3c4));b(.26,.18,.06,s*(tw||hx),hy,tz,bmat(0xc81818))}}
 function pickup(g,o){const b=B(g),W=1.9,C=o.col;
@@ -49,7 +50,7 @@ b(1.9,.85,4.9,0,.775,0,WH);b(1.78,.18,1.5,0,1.28,-1.7,WH);b(1.85,.75,3.4,0,1.58,
 b(1.7,.6,.07,0,1.65,-1.18,GL,.55);for(const s of[-1,1]){b(.1,.08,2.4,s*.98,.5,.4,DK);b(.07,.5,.08,s*.82,.78,-2.55,CH);b(.07,.5,.08,s*.35,.78,-2.55,CH);wheel(g,.43,.3,s*.9,.43,-1.6,0xc8ccd0);wheel(g,.43,.3,s*.9,.43,1.5,0xc8ccd0);
 const sp=new THREE.Mesh(new THREE.CylinderGeometry(.17,.17,.12,12),bmat(0xe8dfa8));sp.rotation.x=Math.PI/2;sp.position.set(s*.45,.85,-2.58);g.add(sp)}
 b(1.7,.07,.08,0,1.0,-2.55,CH);b(1.7,.07,.08,0,.55,-2.55,CH);lamps(g,.68,.98,-2.46,2.46,.7);
-if(!window.KMODE)face(g,tmat('PATROL',1.2,.22,'#111',40,'#b9c0c6'),1.2,.22,0,.72,-2.6);face(g,smat(),1.1,.25,0,.5,-2.6);side(g,tmat(nm(),1.9,.3,'#16296b',34),1.9,.3,.96,1.0,.4);
+const pt=tmat('PATROL',1.2,.22,'#111',40,'#b9c0c6');face(g,pt,1.2,.22,0,.72,-2.6);face(g,pt,1.0,.19,0,.78,2.47,1);top(g,tmat('PATROL',1.3,.34,'#16296b',52),1.3,.34,0,1.38,-1.75);face(g,smat(),1.1,.25,0,.5,-2.6);side(g,tmat(nm(),1.9,.3,'#16296b',34),1.9,.3,.96,1.0,.4);
 b(.03,.55,.03,.55,1.62,-1.15,0xcccccc);b(.02,.2,.34,.55,1.82,-.98,0x0b1020);lightbar(g,0,2.14,-.6,.9)}
 function armored(g,o){const b=B(g),C=o.col,DK=0x15171a;
 b(2.0,.5,5.0,0,.75,0,DK);b(2.1,.85,4.9,0,1.025,.05,C);b(1.95,.35,1.5,0,1.62,-1.75,C);b(2.05,.9,3.1,0,1.9,.7,C);b(1.7,.7,.08,0,1.9,-.88,GL,.5);
@@ -58,7 +59,8 @@ wheel(g,.58,.42,s*1.0,.58,-1.6,o.hub||0x2a2d31);wheel(g,.58,.42,s*1.0,.58,1.55,o
 b(1.2,.85,1.3,0,2.78,1.1,C);for(const s of[-1,1])b(.35,.3,.05,s*.3,2.9,.44,0x9fc4dd);
 if(o.spare){const t=new THREE.Mesh(WG.sp||(WG.sp=new THREE.CylinderGeometry(.5,.5,.3,14)),mat(0x111111));t.position.set(0,2.5,-.2);g.add(t)}
 b(2.25,.28,.35,0,.75,-2.55,DK);b(.7,.32,.35,0,.95,-2.5,0x2a2d31);b(2.1,.1,.1,0,1.35,-2.62,DK);b(1.0,.5,.06,0,1.35,-2.5,0x0a0a0b);lamps(g,.72,1.3,-2.5,2.5,.8);
-if(o.strobe){b(.3,.14,.06,-.45,1.02,-2.54,g.userData.bm);b(.3,.14,.06,.45,1.02,-2.54,g.userData.lm);if(!window.KMODE)face(g,tmat('SWAT',.5,.16,'#111',26,'#f2f2f2'),.5,.16,-.7,.78,-2.74)}
+if(o.strobe){b(.3,.14,.06,-.45,1.02,-2.54,g.userData.bm);b(.3,.14,.06,.45,1.02,-2.54,g.userData.lm);face(g,tmat('SWAT',.5,.16,'#111',26,'#f2f2f2'),.5,.16,-.7,.78,-2.74)}
+if(o.swat){const sc2=o.col===0xe6e8ea?'#16296b':'#ffffff',sm=tmat('SWAT',.95,.34,sc2,50);side(g,sm,.95,.34,1.06,1.0,1.98);face(g,sm,.95,.34,0,1.2,2.52,1);top(g,sm,1.2,.42,0,1.81,-1.95)}
 else lightbar(g,0,2.45,-.55,1.3);
 side(g,tmat(nm(),2.4,.36,o.col===0xe6e8ea?'#16296b':'#ffffff',40),2.4,.36,1.06,1.0,.3);
 if(o.gun){b(.1,.1,.9,.45,1.55,-2.2,0x111);b(.5,.2,.3,.45,1.5,-1.8,0x111)}}
@@ -83,9 +85,9 @@ if(kind==='a')pickup(g,{col:0x15181c,can:0x2b2d30,tarp:1,flare:0x3a3e42,full:1})
 else if(kind==='b')pickup(g,{col:0x1f68bd,can:0x1f68bd,flare:0x1a56a0});
 else if(kind==='c')sedan(g);else if(kind==='d')patrol(g);
 else if(kind==='e')armored(g,{col:0x15181c,hub:0x888e94});
-else if(kind==='f')armored(g,{col:0x55565b,spare:1});
-else if(kind==='g')armored(g,{col:0x4b3a33,strobe:1});
-else armored(g,{col:0xe6e8ea,gun:1,hub:0x30343a});
+else if(kind==='f')armored(g,{col:0x55565b,spare:1,swat:1});
+else if(kind==='g')armored(g,{col:0x4b3a33,strobe:1,swat:1});
+else armored(g,{col:0xe6e8ea,gun:1,swat:1,hub:0x30343a});
 const d=DIM[kind];g.userData.own=1;sc.add(g);return{g,L:d[0],Wd:d[1],H:d[2]}}
 function kill(o){if(!o)return;try{sc.remove(o)}catch(e){}o.traverse&&o.traverse(m=>{try{if(m.material&&m.userData&&m.userData.dispose){m.material.dispose()}}catch(e){}})}
 /* ---------- জায়গা বাছা ---------- */
