@@ -9,11 +9,11 @@ const money=n=>'৳'+bn(Math.round(n).toLocaleString('en-IN'));
 const water=(x,z)=>KM&&typeof kWater==='function'&&kWater(x,z);
 const blocked=(x,z)=>(typeof hit==='function'&&hit(x,z))||water(x,z);
 const blk=(u,x,z)=>u.kind==='boat'?!water(x,z):blocked(x,z);
-const W={ped:0,cop:0,dec:0,stars:0,cc:99,sp:0,bust:0,units:[],heli:null,gar:null,gcd:0,gmsg:0,spT:0,tk:0,sirenT:0};
-const TP=[0,1,11,21,31,41],UK=['a','b','c','d','e','f','g','h','boat'];
+const W={nx:0,rbu:[],rbs:[],rbp:null,alt:0,flat:0,ped:0,cop:0,dec:0,stars:0,cc:99,sp:0,bust:0,units:[],heli:null,gar:null,gcd:0,gmsg:0,spT:0,tk:0,sirenT:0};
+const TP=[0,1,11,21,31,41],UK=['a','b','c','d','e','f','g','h','boat'],SPI=[0,20,15,12,10,10],MASS={a:1.2,b:1.7,c:2.3,d:3.2,e:4.2,f:4.6,g:4.6,h:4.8};
 const LV=KM?['','কাপ্তাই থানার পিকআপ','পুলিশ নীল পিকআপ','থানার টহল গাড়ি','প্যাট্রোল, সাঁজোয়া যান ও হেলিকপ্টার','সোয়াট সাঁজোয়া বহর ও হেলিকপ্টার']:['','ডিএমপি পিকআপ টহল','পুলিশ নীল পিকআপ','ডিএমপি টহল গাড়ি','প্যাট্রোল, সাঁজোয়া যান ও হেলিকপ্টার','সোয়াট সাঁজোয়া বহর ও হেলিকপ্টার'];
 const MSG=KM?['','🚓 কাপ্তাই থানার পিকআপ আপনার পিছু নিয়েছে','🚔 পুলিশের নীল পিকআপ নামানো হয়েছে! পালান!','🚨 থানার টহল গাড়ি ঘিরে ফেলছে — রাস্তা বন্ধ হচ্ছে!','🚁 সাঁজোয়া যান নেমেছে, আকাশে হেলিকপ্টার! লুকানোর জায়গা খুঁজুন','⚓ সোয়াট বহর ও নৌ-পুলিশ মাঠে! পুরো কাপ্তাই আপনাকে খুঁজছে']:['','🚓 ডিএমপি পিকআপ আপনাকে দেখে ফেলেছে!','🚔 পুলিশ নীল পিকআপ পিছু নিয়েছে — পালান!','🚨 ডিএমপি টহল গাড়ি নেমেছে! সব মোড়ে নজরদারি','🚁 প্যাট্রোল, সাঁজোয়া যান ও হেলিকপ্টার! আকাশ থেকে আপনাকে দেখছে','🪖 সোয়াট সাঁজোয়া বহর নেমেছে! পুরো ঢাকা আপনার খোঁজে'];
-const need=n=>({a:n===1?2:0,b:n===2?3:0,c:n===3?4:0,d:n===4?3:0,e:n===4?2:0,f:n===5?2:0,g:n===5?3:0,h:n===5?2:0,heli:n>=4?1:0,boat:KM?[0,0,0,1,1,2][n]:0});
+const need=n=>({a:n===1?3:0,b:n===2?4:0,c:n===3?5:0,d:n===4?4:0,e:n===4?3:0,f:n===5?3:0,g:n===5?3:0,h:n===5?3:0,heli:n>=4?1:0,boat:KM?[0,0,0,1,1,2][n]:0});
 /* ---------- মডেল: ছবির হুবহু গাড়ি (লেভেল অনুযায়ী) ---------- */
 const GC={},geo=(w,h,l)=>{const k=w+','+h+','+l;return GC[k]||(GC[k]=new THREE.BoxGeometry(w,h,l))},MC2={},mat=c=>MC2[c]||(MC2[c]=new THREE.MeshLambertMaterial({color:c})),BM={},bmat=c=>BM[c]||(BM[c]=new THREE.MeshBasicMaterial({color:c}));
 const NF='"Hind Siliguri","Noto Sans Bengali",sans-serif',TXC={},PG={},WG={};
@@ -91,22 +91,22 @@ else armored(g,{col:0xe6e8ea,gun:1,swat:1,hub:0x30343a});
 const d=DIM[kind];g.userData.own=1;sc.add(g);return{g,L:d[0],Wd:d[1],H:d[2]}}
 function kill(o){if(!o)return;try{sc.remove(o)}catch(e){}o.traverse&&o.traverse(m=>{try{if(m.material&&m.userData&&m.userData.dispose){m.material.dispose()}}catch(e){}})}
 /* ---------- জায়গা বাছা ---------- */
-function spawnPt(mn,mx,wantWater){const P=BPJ_T.pts()||[];const fx=Math.sin(S.h),fz=-Math.cos(S.h);
+function spawnPt(mn,mx,wantWater,front){const P=BPJ_T.pts()||[];const fx=Math.sin(S.h),fz=-Math.cos(S.h);
 if(wantWater){for(let i=0;i<40;i++){const a=rnd(0,6.283),r=rnd(mn,mx),x=S.x+Math.cos(a)*r,z=S.z+Math.sin(a)*r;if(water(x,z))return{x,z,h:rnd(0,6.283)}}return null}
-let best=null;for(let i=0;i<50&&P.length;i++){const p=P[Math.floor(Math.random()*P.length)],d=dist(p[0],p[1],S.x,S.z);if(d<mn||d>mx)continue;const dot=((p[0]-S.x)*fx+(p[1]-S.z)*fz)/(d||1);if(dot>.45&&d<mx*.9)continue;best=p;break}
-if(!best)return null;let dx=S.x-best[0],dz=S.z-best[1];const dir=(best[2]*dx+best[3]*dz)>=0?1:-1;return{x:best[0],z:best[1],h:Math.atan2(best[2]*dir,-best[3]*dir)}}
+let best=null;for(let i=0;i<(front?150:50)&&P.length;i++){const p=P[Math.floor(Math.random()*P.length)],d=dist(p[0],p[1],S.x,S.z);if(d<mn||d>mx)continue;const dot=((p[0]-S.x)*fx+(p[1]-S.z)*fz)/(d||1);if(front?dot<.55:(dot>.45&&d<mx*.9))continue;best=p;break}
+if(!best)return null;let dx=S.x-best[0],dz=S.z-best[1];const dir=(best[2]*dx+best[3]*dz)>=0?1:-1;return{x:best[0],z:best[1],h:Math.atan2(best[2]*dir,-best[3]*dir),dx:best[2],dz:best[3],w:best[5]}}
 /* ---------- ইউনিট ---------- */
-function spawn(kind){if(kind==='heli'){if(W.heli)return;W.heli=mkHeli();W.heli.x=S.x+rnd(-60,60);W.heli.z=S.z+rnd(-60,60);toast('🚁 পুলিশ হেলিকপ্টার আকাশে!',2.4);return}
-const sp=spawnPt(kind==='boat'?110:105,kind==='boat'?260:190,kind==='boat');if(!sp)return;const m=mkUnit(kind);
-const u={kind,g:m.g,L:m.L,Wd:m.Wd,x:sp.x,z:sp.z,h:sp.h,v:0,stuck:0,dis:0,pref:Math.random()<.5?1:-1,hc:0,spin:0,top:0};m.g.position.set(u.x,0,u.z);m.g.rotation.y=-u.h;W.units.push(u)}
+function spawn(kind,front){if(kind==='heli'){if(W.heli)return;W.heli=mkHeli();W.heli.x=S.x+rnd(-60,60);W.heli.z=S.z+rnd(-60,60);toast('🚁 পুলিশ হেলিকপ্টার আকাশে!',2.4);return}
+const sp=front&&kind!=='boat'?(spawnPt(110,200,false,true)||spawnPt(105,190,false)):spawnPt(kind==='boat'?110:105,kind==='boat'?260:190,kind==='boat');if(!sp||W.units.concat(W.rbu).some(o=>dist(o.x,o.z,sp.x,sp.z)<9))return;const m=mkUnit(kind);
+const u={kind,g:m.g,L:m.L,Wd:m.Wd,x:sp.x,z:sp.z,h:sp.h,v:0,stuck:0,dis:0,pref:Math.random()<.5?1:-1,hc:0,spin:0,top:0,kx:0,kz:0};m.g.position.set(u.x,0,u.z);m.g.rotation.y=-u.h;W.units.push(u)}
 function remove(u){kill(u.g);const i=W.units.indexOf(u);if(i>=0)W.units.splice(i,1)}
-function clearAll(){for(const u of W.units.slice())remove(u);if(W.heli){kill(W.heli.g);kill(W.heli.beam);W.heli=null}}
+function clearAll(){rbClear();for(const u of W.units.slice())remove(u);if(W.heli){kill(W.heli.g);kill(W.heli.beam);W.heli=null}}
 function nearest(){let b=1e9;for(const u of W.units){const d=dist(u.x,u.z,S.x,S.z);if(d<b)b=d}if(W.heli){const d=dist(W.heli.x,W.heli.z,S.x,S.z);if(d<b)b=d}return b}
 const TOP=()=>(typeof PV!=='undefined'&&PV.top)||18;
 function moveUnit(u,dt){const T=TOP(),pv=Math.abs(S.vf),fx=Math.sin(S.h),fz=-Math.cos(S.h);let tx=S.x+fx*Math.sign(S.vf||1)*pv*.7,tz=S.z+fz*Math.sign(S.vf||1)*pv*.7;const dp=dist(u.x,u.z,S.x,S.z);
 if(u.dis>0){u.dis-=dt;u.v*=Math.pow(.2,dt);u.h+=u.spin*dt;u.spin*=.96;if(u.dis<=0)u.spin=0}
 else{let tgt=Math.atan2(tx-u.x,-(tz-u.z)),base=('efgh'.indexOf(u.kind)>=0?.86:.92)+.035*W.stars;if(u.kind==='boat')base=.8;
-let sp=T*base;if(dp>220)sp*=1.5;else if(dp<16)sp=Math.max(pv*1.03,4);
+let sp=T*base;if(dp>220)sp*=1.5;else if(dp<16)sp=Math.max(pv*1.03,4);for(const o of W.rbu)if(dist(o.x,o.z,u.x,u.z)<11){sp=Math.min(sp,3);break}
 const la=Math.max(4,u.v*.7+3);let ok=false;const offs=[0,.5*u.pref,-.5*u.pref,1*u.pref,-1*u.pref,1.6*u.pref,-1.6*u.pref];
 for(const o of offs){const a=tgt+o;if(!blk(u,u.x+Math.sin(a)*la,u.z-Math.cos(a)*la)&&!blk(u,u.x+Math.sin(a)*la*.5,u.z-Math.cos(a)*la*.5)){tgt=a;ok=true;break}}
 if(!ok){sp=0;tgt=u.h+u.pref*1.2}
@@ -116,12 +116,36 @@ const nx=u.x+Math.sin(u.h)*u.v*dt,nz=u.z-Math.cos(u.h)*u.v*dt;
 if(u.v>.3&&blk(u,nx+Math.sin(u.h)*u.L*.5,nz-Math.cos(u.h)*u.L*.5)){u.v*=.2;u.stuck+=dt;u.pref=-u.pref}else{u.x=nx;u.z=nz;if(u.v>1)u.stuck=Math.max(0,u.stuck-dt)}
 if(u.stuck>2.6||dp>330){const sp=spawnPt(u.kind==='boat'?110:105,u.kind==='boat'?260:190,u.kind==='boat');if(sp){u.x=sp.x;u.z=sp.z;u.h=sp.h;u.v=0;u.stuck=0}else u.stuck=0}
 u.g.position.set(u.x,u.kind==='boat'?Math.sin(performance.now()*.002+u.x)*.05:0,u.z);u.g.rotation.y=-u.h;u.g.rotation.z=u.dis>0?Math.sin(performance.now()*.02)*.08:0}
-function contact(u,dt){if(u.kind==='boat'||G.over)return;const fx=Math.sin(S.h),fz=-Math.cos(S.h),rx=Math.cos(S.h),rz=Math.sin(S.h),dx=u.x-S.x,dz=u.z-S.z,lx=dx*rx+dz*rz,lz=dx*fx+dz*fz;
-const hw=((typeof PV!=='undefined'&&PV.hw)||.9)+u.Wd*.5,hl=((typeof PV!=='undefined'&&PV.ol)||2)+u.L*.5;if(Math.abs(lx)<hw&&Math.abs(lz)<hl){
-const rel=S.vf-(u.v*(Math.sin(u.h)*fx-Math.cos(u.h)*fz));const push=Math.max(0,hw-Math.abs(lx)),sgx=lx>=0?1:-1;
-if(u.hc<=0){u.hc=1.1;const fr=lz*Math.sign(S.vf||1)>0;if(fr&&Math.abs(rel)>4&&u.dis<=0)addHeat('cop');if(Math.abs(rel)>7&&fr&&u.dis<=0){u.dis=5;u.spin=rnd(-3,3);u.v*=.4;G.loss+=12000;W.cc=0;toast('💥 পুলিশের গাড়ি উল্টে অচল! ক্ষতি '+money(12000),2.4);if(window.BPD){BPD.sparks(u.x,.8,u.z,14);BPD.puff(u.x,1,u.z,5,0x333333);BPD.hurt(.3)}S.vf*=.75;shake&&shake(.5)}
-else if(u.dis<=0){S.vf*=.94;if(window.BPD)BPD.hurt(.22,lz*Math.sign(S.vf||1)<0);toast('🚔 পুলিশ ধাক্কা দিল!',1.4);shake&&shake(.35)}}
-u.x+=rx*sgx*push*.6*Math.min(1,dt*8);u.z+=rz*sgx*push*.6*Math.min(1,dt*8)}u.hc-=dt}
+function contact(u,dt){if(u.kind==='boat'||G.over)return;u.hc-=dt;const fx=Math.sin(S.h),fz=-Math.cos(S.h),rx=Math.cos(S.h),rz=Math.sin(S.h),dx=u.x-S.x,dz=u.z-S.z,lx=dx*rx+dz*rz,lz=dx*fx+dz*fz;
+const hw=((typeof PV!=='undefined'&&PV.hw)||.9)+u.Wd*.5,hl=((typeof PV!=='undefined'&&PV.ol)||2)+u.L*.5;if(Math.abs(lx)>=hw||Math.abs(lz)>=hl)return;
+const M=MASS[u.kind]||2,cs=1/(1+M*.6),ps=1-cs,sg=Math.sign(S.vf||1),rel=S.vf-(u.v*(Math.sin(u.h)*fx-Math.cos(u.h)*fz)+u.kx*fx+u.kz*fz),fr=lz*sg>0,c=Math.max(0,fr?rel*sg:-rel*sg),mv=Math.min(1,dt*9),penX=hw-Math.abs(lx),penZ=hl-Math.abs(lz);
+let ox,oz;if(penX<penZ){const q=lx>=0?1:-1;ox=rx*q*penX;oz=rz*q*penX}else{const q=lz>=0?1:-1;ox=fx*q*penZ;oz=fz*q*penZ}
+u.x+=ox*cs*mv;u.z+=oz*cs*mv;const px=S.x-ox*ps*mv,pz=S.z-oz*ps*mv;if(!blocked(px,pz)){S.x=px;S.z=pz}
+if(u.hc<=0&&c>1.5){u.hc=.45;const k=Math.min(1,c/12);
+if(fr&&c>4)addHeat('cop');
+if(fr){const ks=Math.min(11,c*cs*1.2);u.kx+=fx*sg*ks;u.kz+=fz*sg*ks;u.v*=1-.35*cs*k;u.h+=rnd(-.2,.2)*k*cs;S.vf-=sg*Math.min(Math.abs(S.vf),c*(M/(M+4))*.9)}
+if(window.BPD){BPD.hurt(.1+.05*M*k,fr);if(c>6)BPD.sparks((u.x+S.x)/2,.8,(u.z+S.z)/2,8)}
+shake&&shake(.15+.05*M*k);if(c>6)toast(M>3?'🚔 শক্ত সাঁজোয়া গাড়ি — ধাক্কা সামলান!':'🚔 পুলিশের গাড়িতে ধাক্কা!',1.2)}}
+function kick(u,dt){if(!u.kx&&!u.kz)return;const nx=u.x+u.kx*dt,nz=u.z+u.kz*dt;if(!blk(u,nx,nz)){u.x=nx;u.z=nz}const d=Math.pow(.02,dt);u.kx*=d;u.kz*=d;if(Math.abs(u.kx)+Math.abs(u.kz)<.05)u.kx=u.kz=0}
+function circ(u){const k=u.L*.33,sx=Math.sin(u.h),sz=-Math.cos(u.h);return[[u.x-sx*k,u.z-sz*k],[u.x,u.z],[u.x+sx*k,u.z+sz*k]]}
+function sepAll(){const A=W.units.concat(W.rbu);for(let i=0;i<A.length;i++)for(let j=i+1;j<A.length;j++){const a=A[i],b=A[j];if(a.rb&&b.rb)continue;if((a.kind==='boat')!==(b.kind==='boat'))continue;if(Math.hypot(a.x-b.x,a.z-b.z)>(a.L+b.L)*.5+1.5)continue;
+const ca=circ(a),cb=circ(b),r=(a.Wd+b.Wd)*.5+.1;let px=0,pz=0;
+for(const p of ca)for(const q of cb){let dx=q[0]-p[0],dz=q[1]-p[1],d=Math.hypot(dx,dz);if(d<r){if(d<.01){dx=rnd(-1,1);dz=rnd(-1,1);d=Math.hypot(dx,dz)||1}const k=(r-d)/d;px-=dx*k;pz-=dz*k}}
+if(!px&&!pz)continue;const sa=b.rb?1:(a.rb?0:.5),sb=a.rb?1:(b.rb?0:.5);a.x+=px*.6*sa;a.z+=pz*.6*sa;b.x-=px*.6*sb;b.z-=pz*.6*sb}}
+/* ---------- রোডব্লক ও স্পাইক ---------- */
+function rbClear(){for(const u of W.rbu)kill(u.g);for(const q of W.rbs)kill(q.g);W.rbu=[];W.rbs=[];W.rbp=null}
+function roadblock(){const k=W.stars>=5?['f','g','h']:W.stars>=4?['d','d','e']:['c','c'],sp=spawnPt(120,210,false,true);if(!sp||!sp.w)return false;
+const nx=-sp.dz,nz=sp.dx,c=k.length,gap=Math.min(5.2,(sp.w+3)/c);let made=0;
+for(let i=0;i<c;i++){const o=(i-(c-1)/2)*gap,x=sp.x+nx*o,z=sp.z+nz*o;if(blocked(x,z))continue;const m=mkUnit(k[i]),h=Math.atan2(-sp.dz,-sp.dx)+(i-(c-1)/2)*.12;
+const u={kind:k[i],g:m.g,L:m.L,Wd:m.Wd,x,z,h,v:0,stuck:0,dis:0,pref:1,hc:0,spin:0,top:0,kx:0,kz:0,rb:1};m.g.position.set(x,0,z);m.g.rotation.y=-h;W.rbu.push(u);made++}
+if(!made)return false;const sgn=((S.x-sp.x)*sp.dx+(S.z-sp.z)*sp.dz)>=0?1:-1;W.rbp={x:sp.x,z:sp.z,dx:sp.dx,dz:sp.dz,sgn};
+if(W.stars>=4){const sx=sp.x+sp.dx*sgn*7,sz=sp.z+sp.dz*sgn*7,g=new THREE.Group(),w=sp.w+2,n=Math.floor(w/.6);const bs=new THREE.Mesh(geo(w,.05,1.1),mat(0x202225));bs.position.y=.03;g.add(bs);
+if(!WG.sk)WG.sk=new THREE.ConeGeometry(.09,.34,4);for(let i=0;i<n;i++)for(const zz of[-.3,.3]){const t=new THREE.Mesh(WG.sk,mat(0xc8ccd0));t.position.set((i-(n-1)/2)*.6,.2,zz);g.add(t)}
+g.position.set(sx,0,sz);g.rotation.y=Math.atan2(-nz,nx);g.userData.own=1;sc.add(g);W.rbs.push({g,x:sx,z:sz,dx:sp.dx,dz:sp.dz,nx,nz,w,hit:0})}
+toast(W.stars>=4?'🚧 সামনে পুলিশের রোডব্লক — রাস্তায় স্পাইক আছে!':'🚧 সামনে পুলিশের রোডব্লক!',3);return true}
+function rbTick(dt){if(W.rbp){const p=W.rbp,d=dist(p.x,p.z,S.x,S.z),side=((S.x-p.x)*p.dx+(S.z-p.z)*p.dz)*p.sgn;if(d>400||side<-70||(W.stars===0&&d>45))rbClear()}
+for(const q of W.rbs){if(q.hit)continue;const ex=S.x-q.x,ez=S.z-q.z,a=ex*q.dx+ez*q.dz,b=ex*q.nx+ez*q.nz;if(Math.abs(a)<1.8&&Math.abs(b)<q.w/2+1){q.hit=1;W.flat=7;toast('🛞 স্পাইকে টায়ার ফেটে গেছে! গতি কমে গেছে',3);if(window.BPD){BPD.sparks(S.x,.3,S.z,18);BPD.hurt(.1)}shake&&shake(.5)}}
+if(W.flat>0){W.flat-=dt;const cap=TOP()*.38;if(Math.abs(S.vf)>cap)S.vf=Math.sign(S.vf)*cap}}
 /* ---------- ধাক্কার লেখা (ঠাস-এর বদলে) ---------- */
 const HT={},HTX={ped:['সুইদ্দে','অবদ্দা','#e11d48'],veh:['সর','সুদানিরফুয়া','#f97316'],obj:['ভরি','দিইয়্যে','#16a34a']};
 function hitTex(k){if(HT[k])return HT[k];const d=HTX[k],c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.translate(128,128);x.rotate(-.12);
@@ -136,7 +160,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{for(const
 /* ---------- তাপ ও তারা ---------- */
 function pedStar(n){let k=0;for(let i=1;i<=5;i++)if(n>=TP[i])k=i;return k}
 function starsOf(){return Math.min(5,pedStar(W.ped)+Math.floor(W.cop/5))}
-function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n>o){toast(MSG[n],3.8);W.spT=0}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
+function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n>o){toast(MSG[n],3.8);W.spT=0;W.nx=o===0?rnd(4,9):Math.min(W.nx,rnd(3,6))}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
 function addHeat(k){if(k==='ped')W.ped++;else if(k==='cop')W.cop++;else return;W.cc=0;W.dec=0;setStars(starsOf())}
 function dropStar(){const n=starsOf();if(n<=0){W.ped=W.cop=0;return}if(W.cop>=5)W.cop-=5;else{const p=pedStar(W.ped);W.ped=p>1?TP[p-1]:0}setStars(starsOf());if(W.stars===0)W.ped=W.cop=0}
 /* ---------- গোপন গ্যারেজ ---------- */
@@ -176,13 +200,18 @@ if(kmh>110){W.sp+=dt;if(W.sp>6){W.sp=-14;addHeat('speed');if(W.stars>0)toast('�
 W.cc+=dt;
 if((W.ped||W.cop)&&W.cc>10){const nr=nearest(),rate=nr<75?.6:(nr>130?8:3.5);W.dec+=rate*dt;if(W.dec>=60){W.dec=0;dropStar()}}
 const tg=need(W.stars);W.spT-=dt;
-if(W.spT<=0){W.spT=1.1;for(const k of['heli'].concat(UK)){const have=k==='heli'?(W.heli?1:0):W.units.filter(u=>u.kind===k).length;if(have<tg[k]){spawn(k);break}}
+if(W.stars>0){W.nx-=dt;if(tg.heli&&!W.heli)spawn('heli');
+if(W.nx<=0){let k=null;for(const q of UK)if(q!=='boat'&&W.units.filter(u=>u.kind===q).length<tg[q]){k=q;break}
+if(!k)W.nx=2;else{W.nx=SPI[W.stars];W.alt=!W.alt;if(!(W.stars>=3&&W.alt&&!W.rbu.length&&roadblock()))spawn(k,Math.random()<.5)}}}
+if(W.spT<=0){W.spT=1.1;if(tg.boat&&W.units.filter(u=>u.kind==='boat').length<tg.boat)spawn('boat');
 if(W.stars===0&&W.units.length){for(const u of W.units.slice())if(dist(u.x,u.z,S.x,S.z)>45)remove(u)}
-for(const k of UK){const l=W.units.filter(u=>u.kind===k);if(l.length>tg[k]){l.sort((a,b)=>dist(b.x,b.z,S.x,S.z)-dist(a.x,a.z,S.x,S.z));remove(l[0])}}
+for(const k of UK){const l=W.units.filter(u=>u.kind===k);if(l.length>tg[k]){l.sort((a,b)=>dist(b.x,b.z,S.x,S.z)-dist(a.x,a.z,S.x,S.z));if(dist(l[0].x,l[0].z,S.x,S.z)>70)remove(l[0])}}
 if(!tg.heli&&W.heli){kill(W.heli.g);kill(W.heli.beam);W.heli=null}}
 const f=Math.floor(performance.now()/170)%2;
-for(const u of W.units){if(W.stars>0||u.dis>0)moveUnit(u,dt);else{u.v*=.9}contact(u,dt);const d=u.g.userData;if(d.lm){d.lm.color.setHex(f?0xff2020:0x300000);d.bm.color.setHex(f?0x101040:0x2a50ff)}}
-for(let i=0;i<W.units.length;i++)for(let j=i+1;j<W.units.length;j++){const a=W.units[i],b=W.units[j],dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz);if(d<3.3&&d>.01){const k=(3.3-d)*.5/d;a.x-=dx*k;a.z-=dz*k;b.x+=dx*k;b.z+=dz*k}}
+const fl=u=>{const d=u.g.userData;if(d.lm){d.lm.color.setHex(f?0xff2020:0x300000);d.bm.color.setHex(f?0x101040:0x2a50ff)}};
+for(const u of W.units){if(W.stars>0||u.dis>0)moveUnit(u,dt);else{u.v*=.9}kick(u,dt);contact(u,dt);fl(u)}
+for(const u of W.rbu){kick(u,dt);contact(u,dt);u.g.position.set(u.x,0,u.z);fl(u)}
+sepAll();rbTick(dt);
 const H=W.heli;if(H){H.t+=dt;H.cd-=dt;let ty=28,k=Math.min(1,dt*1.1),tx,tz;const sx=Math.sin(S.h),sz=-Math.cos(S.h);
 if(H.mode==='o'&&H.cd<=0&&!G.over){H.mode='d';H.dt=0;H.hit=0;toast('🚁 হেলিকপ্টার ঝাঁপ দিচ্ছে — সরুন!',2.2)}
 if(H.mode==='d'){H.dt+=dt;ty=3.4;k=Math.min(1,dt*2.4);tx=S.x+sx*S.vf*.45;tz=S.z+sz*S.vf*.45;
@@ -193,9 +222,9 @@ const px=H.x,pz=H.z;H.x+=(tx-H.x)*k;H.z+=(tz-H.z)*k;H.y+=(ty-H.y)*Math.min(1,dt*
 const vx=H.x-px,vz=H.z-pz;if(vx*vx+vz*vz>1e-6)H.h=Math.atan2(vx,vz);H.g.position.set(H.x,H.y+Math.sin(H.t*2)*.4,H.z);H.g.rotation.y=H.h;H.g.rotation.x+=((H.mode==='d'?.3:.06)-H.g.rotation.x)*Math.min(1,dt*4);H.rot.rotation.y+=dt*38;H.lm.color.setHex(f?0xff2020:0x300000);
 const dir=new THREE.Vector3(S.x-H.x,-H.g.position.y,S.z-H.z),len=dir.length();H.beam.position.copy(H.g.position);H.beam.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir.normalize());H.beam.scale.set(1,len,1)}
 bustCheck(dt);const nr=W.stars>0?nearest():1e9;siren(W.stars>0?Math.max(0,1-nr/260):0)}
-function cleanup(){clearAll();W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
+function cleanup(){clearAll();W.flat=0;W.nx=0;W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return o.apply(this,arguments)}}
 after('crime',function(a,m,k){window.BPHK=k||'prop';window.BPHK_t=performance.now();if(typeof FXL!=='undefined'){const t=hitTex(hk(window.BPHK));for(const f of FXL)if(f.t<.05&&f.s.material.map!==t){f.s.material.map=t;f.s.material.needsUpdate=true}}addHeat(k||'prop')});after('gameTick',tick);after('hud',hudTick);after('drawMini',mini);before('endTrip',cleanup);
-window.BPW={W,addHeat,spawn,tick,placeGar,starsOf,need};
+window.BPW={W,addHeat,spawn,tick,placeGar,starsOf,need,roadblock};
 })();
