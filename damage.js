@@ -34,7 +34,7 @@ function glassList(u){if(u.gl)return u.gl;u.gl=[];bus.traverse(o=>{if(o.isMesh&&
 function crack(u){for(const g of glassList(u)){if(!g.userData.bpg&&g.material&&!Array.isArray(g.material)){const o=g.material;g.material=o.clone();g.userData.bpg={map:o.map,op:o.opacity,col:o.color&&o.color.clone(),tr:o.transparent}}const m=g.material;if(Array.isArray(m))continue;m.map=crackTex();m.transparent=true;m.opacity=Math.max(m.opacity||.5,.62);m.needsUpdate=true}}
 function shatter(u){u.shat=1;for(const g of glassList(u)){g.visible=false;try{const w=new THREE.Vector3();g.getWorldPosition(w);shards(w.x,w.y,w.z,8)}catch(e){}}}
 /* ---------- আঘাত ---------- */
-function hurt(sev,rear){if(G.over||!G.started)return;const u=U(),v0=u.v;u.v=Math.min(100,u.v+sev*18*.05);
+function hurt(sev,rear){if(G.over||!G.started)return;const u=U(),v0=u.v;u.v=Math.min(100,u.v+sev*18*.01);
 const L=(typeof PV!=='undefined'&&PV.ol)||2,W=(typeof PV!=='undefined'&&PV.hw)||.9,dz=rear?-1:1,cz=(rear?1:-1)*L*.92,cx=rnd(-W*.7,W*.7);
 bus.updateMatrixWorld(true);const w=new THREE.Vector3(cx,.7,cz);bus.localToWorld(w);
 if(sev>=.12)sparks(w.x,w.y,w.z,Math.round(6+sev*16));
@@ -43,7 +43,7 @@ if(u.v>=25&&!u.c25){u.c25=1;crack(u)}
 if((u.v>=65||sev>1.3)&&!u.shat){shatter(u)}
 if(u.v>=50&&!u.c50){u.c50=1;toast('💨 ইঞ্জিন থেকে ধোঁয়া বেরোচ্ছে!',2.4)}
 if(u.v>=80&&!u.c80){u.c80=1;toast('🔥 গাড়ি জ্বলছে! গতি কমে গেছে — মেরামত দরকার',3)}}
-const KW={wall:1,veh:.9,bld:1,prop:.55,cart:.3,ped:.1};
+const KW={wall:0,veh:.9,bld:0,prop:0,cart:0,ped:.1};
 function onCrime(a,m,k){if(G.over)return;if(hcd>0)return;const w=KW[k]===undefined?.5:KW[k];if(w<=0)return;const f=Math.max(.15,Math.min(1.2,rs/14));hcd=.35;hurt(w*f,S.vf<0)}
 /* ---------- প্রতি ফ্রেমে ---------- */
 let pill=null,lastTxt='';
