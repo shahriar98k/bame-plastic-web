@@ -330,8 +330,8 @@ for(let i=0;i<16;i++){BX(g,L/16-2,6.4,.7,-L/2+(i+.5)*L/16,5.2,z0+.9,steel);BX(g,
 BX(g,L+1.8,.8,D,0,8.8,z0+D/2,conc);for(const sd of[-1,1])BX(g,L+1.8,1,.3,0,9.7,z0+D/2+sd*(D/2-.2),MC(0xd8d8d4),0);
 for(let i=0;i<10;i++)BX(g,.2,5,.2,-L/2+(i+.5)*L/10,11.7,z0+D-.5,MC(0x555555),0);
 const fl=tx(256,256,(c,W,H)=>{c.fillStyle='#8cc6e8';c.fillRect(0,0,W,H);for(let i=0;i<120;i++){c.fillStyle='rgba(255,255,255,'+(.25+Math.random()*.5)+')';c.fillRect(Math.random()*W,Math.random()*H,2+Math.random()*3,10+Math.random()*30)}});fl.wrapS=fl.wrapT=THREE.RepeatWrapping;fl.repeat.set(L/14,4);window.KFLOW=[fl];
-const chL=70,drop=4.9,cz0=z0+D+chL/2,chute=new THREE.Mesh(new THREE.PlaneGeometry(L-2,chL),new THREE.MeshBasicMaterial({map:fl,side:THREE.DoubleSide}));chute.rotation.x=-Math.PI/2+Math.atan(drop/chL);chute.position.set(0,2.6,cz0);g.add(chute);
-const pool=new THREE.Mesh(new THREE.PlaneGeometry(L+40,50),new THREE.MeshLambertMaterial({color:0x6fb2d6,side:THREE.DoubleSide}));pool.rotation.x=-Math.PI/2;pool.position.set(0,.08,z0+D+chL+22);g.add(pool);
+const chL=44,drop=4.9,cz0=z0+D+chL/2,chute=new THREE.Mesh(new THREE.PlaneGeometry(L-2,chL),new THREE.MeshBasicMaterial({map:fl,side:THREE.DoubleSide}));chute.rotation.x=-Math.PI/2+Math.atan(drop/chL);chute.position.set(0,2.6,cz0);g.add(chute);
+const pool=new THREE.Mesh(new THREE.PlaneGeometry(L+40,26),new THREE.MeshLambertMaterial({color:0x6fb2d6,side:THREE.DoubleSide}));pool.rotation.x=-Math.PI/2;pool.position.set(0,.08,z0+D+chL+14);g.add(pool);
 for(const sd of[-1,1])BX(g,1.6,7,chL+8,sd*(L/2-.2),3.5,cz0+3,conc2);
 window.KSPW={cx,cz,ux,uz,L,zA:z0-1,zB:z0+D+chL}}
 /* union gates + lake distance boards */
