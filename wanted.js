@@ -10,7 +10,7 @@ const water=(x,z)=>KM&&typeof kWater==='function'&&kWater(x,z);
 const blocked=(x,z)=>(typeof hit==='function'&&hit(x,z))||water(x,z);
 const blk=(u,x,z)=>u.kind==='boat'?!water(x,z):blocked(x,z);
 const W={nx:0,rbu:[],rbs:[],rbp:null,alt:0,flat:0,ped:0,cop:0,dec:0,stars:0,cc:99,sp:0,bust:0,units:[],heli:null,gar:null,gcd:0,gmsg:0,spT:0,tk:0,sirenT:0};
-const TP=[0,1,11,21,31,41],UK=['a','b','c','d','e','f','g','h','boat'],SPI=[0,20,15,12,10,10],MASS={a:1.2,b:1.7,c:2.3,d:3.2,e:4.2,f:4.6,g:4.6,h:4.8};
+const TP=[0,1,11,21,31,41],UK=['a','b','c','d','e','f','g','h','boat'],SPI=[0,10,8,6,5,5],MASS={a:1.2,b:1.7,c:2.3,d:3.2,e:4.2,f:4.6,g:4.6,h:4.8};
 const LV=KM?['','কাপ্তাই থানার পিকআপ','পুলিশ নীল পিকআপ','থানার টহল গাড়ি','প্যাট্রোল, সাঁজোয়া যান ও হেলিকপ্টার','সোয়াট সাঁজোয়া বহর ও হেলিকপ্টার']:['','ডিএমপি পিকআপ টহল','পুলিশ নীল পিকআপ','ডিএমপি টহল গাড়ি','প্যাট্রোল, সাঁজোয়া যান ও হেলিকপ্টার','সোয়াট সাঁজোয়া বহর ও হেলিকপ্টার'];
 const MSG=KM?['','🚓 কাপ্তাই থানার পিকআপ আপনার পিছু নিয়েছে','🚔 পুলিশের নীল পিকআপ নামানো হয়েছে! পালান!','🚨 থানার টহল গাড়ি ঘিরে ফেলছে — রাস্তা বন্ধ হচ্ছে!','🚁 সাঁজোয়া যান নেমেছে, আকাশে হেলিকপ্টার! লুকানোর জায়গা খুঁজুন','⚓ সোয়াট বহর ও নৌ-পুলিশ মাঠে! পুরো কাপ্তাই আপনাকে খুঁজছে']:['','🚓 ডিএমপি পিকআপ আপনাকে দেখে ফেলেছে!','🚔 পুলিশ নীল পিকআপ পিছু নিয়েছে — পালান!','🚨 ডিএমপি টহল গাড়ি নেমেছে! সব মোড়ে নজরদারি','🚁 প্যাট্রোল, সাঁজোয়া যান ও হেলিকপ্টার! আকাশ থেকে আপনাকে দেখছে','🪖 সোয়াট সাঁজোয়া বহর নেমেছে! পুরো ঢাকা আপনার খোঁজে'];
 const need=n=>({a:n===1?3:0,b:n===2?4:0,c:n===3?5:0,d:n===4?4:0,e:n===4?3:0,f:n===5?3:0,g:n===5?3:0,h:n===5?3:0,heli:n>=4?1:0,boat:KM?[0,0,0,1,1,2][n]:0});
@@ -94,13 +94,16 @@ function kill(o){if(!o)return;try{sc.remove(o)}catch(e){}o.traverse&&o.traverse(
 function spawnPt(mn,mx,wantWater,front){const P=BPJ_T.pts()||[];const fx=Math.sin(S.h),fz=-Math.cos(S.h);
 if(wantWater){for(let i=0;i<40;i++){const a=rnd(0,6.283),r=rnd(mn,mx),x=S.x+Math.cos(a)*r,z=S.z+Math.sin(a)*r;if(water(x,z))return{x,z,h:rnd(0,6.283)}}return null}
 let best=null;for(let i=0;i<(front?150:50)&&P.length;i++){const p=P[Math.floor(Math.random()*P.length)],d=dist(p[0],p[1],S.x,S.z);if(d<mn||d>mx)continue;const dot=((p[0]-S.x)*fx+(p[1]-S.z)*fz)/(d||1);if(front?dot<.55:(dot>.45&&d<mx*.9))continue;best=p;break}
-if(!best)return null;let dx=S.x-best[0],dz=S.z-best[1];const dir=(best[2]*dx+best[3]*dz)>=0?1:-1;return{x:best[0],z:best[1],h:Math.atan2(best[2]*dir,-best[3]*dir),dx:best[2],dz:best[3],w:best[5]}}
+if(!best){if(typeof nrt==='function'){for(let i=0;i<60;i++){const a=rnd(0,6.283),r=rnd(mn,mx),x=S.x+Math.cos(a)*r,z=S.z+Math.sin(a)*r;let q=null;try{q=nrt(x,z)}catch(e){}if(q&&q[0]<q[3]/2-1&&!blocked(x,z)&&(!front||((x-S.x)*fx+(z-S.z)*fz)/r>.4))return{x,z,h:Math.atan2(S.x-x,-(S.z-z))}}}return null}let dx=S.x-best[0],dz=S.z-best[1];const dir=(best[2]*dx+best[3]*dz)>=0?1:-1;return{x:best[0],z:best[1],h:Math.atan2(best[2]*dir,-best[3]*dir),dx:best[2],dz:best[3],w:best[5]}}
 /* ---------- ইউনিট ---------- */
 function spawn(kind,front){if(kind==='heli'){if(W.heli)return;W.heli=mkHeli();W.heli.x=S.x+rnd(-60,60);W.heli.z=S.z+rnd(-60,60);toast('🚁 পুলিশ হেলিকপ্টার আকাশে!',2.4);return}
-const sp=front&&kind!=='boat'?(spawnPt(110,200,false,true)||spawnPt(105,190,false)):spawnPt(kind==='boat'?110:105,kind==='boat'?260:190,kind==='boat');if(!sp||W.units.concat(W.rbu).some(o=>dist(o.x,o.z,sp.x,sp.z)<9))return;const m=mkUnit(kind);
+const sp=front&&kind!=='boat'?(spawnPt(45,95,false,true)||spawnPt(40,90,false)):spawnPt(kind==='boat'?110:105,kind==='boat'?260:190,kind==='boat');if(!sp||W.units.concat(W.rbu).some(o=>dist(o.x,o.z,sp.x,sp.z)<9))return;const m=mkUnit(kind);
 const u={kind,g:m.g,L:m.L,Wd:m.Wd,x:sp.x,z:sp.z,h:sp.h,v:0,stuck:0,dis:0,pref:Math.random()<.5?1:-1,hc:0,spin:0,top:0,kx:0,kz:0};m.g.position.set(u.x,0,u.z);m.g.rotation.y=-u.h;W.units.push(u)}
 function remove(u){kill(u.g);const i=W.units.indexOf(u);if(i>=0)W.units.splice(i,1)}
 function clearAll(){rbClear();for(const u of W.units.slice())remove(u);if(W.heli){kill(W.heli.g);kill(W.heli.beam);W.heli=null}}
+function antiStuck(dt){if(typeof inp==='undefined'||typeof VEH==='undefined')return;const go=inp.G||inp.V;if(go&&Math.abs(S.vf)<1.2)W.stk=(W.stk||0)+dt;else W.stk=Math.max(0,(W.stk||0)-dt*2);
+if(W.stk>.7){W.stk=0;for(const v of VEH){if(!v.placed)continue;if(Math.hypot(v.px-S.x,v.pz-S.z)<7){v.placed=false;if(v.g)v.g.visible=false}}
+for(const u of W.units.concat(W.rbu)){const dx=u.x-S.x,dz=u.z-S.z,d=Math.hypot(dx,dz);if(d<8&&d>.01){u.kx+=dx/d*9;u.kz+=dz/d*9}}}}
 function nearestGround(){let b=1e9;for(const u of W.units){if(u.kind==='boat')continue;const d=dist(u.x,u.z,S.x,S.z);if(d<b)b=d}return b}
 function nearest(){let b=1e9;for(const u of W.units){const d=dist(u.x,u.z,S.x,S.z);if(d<b)b=d}if(W.heli){const d=dist(W.heli.x,W.heli.z,S.x,S.z);if(d<b)b=d}return b}
 const TOP=()=>(typeof PV!=='undefined'&&PV.top)||18;
@@ -115,7 +118,7 @@ let dh=tgt-u.h;dh=Math.atan2(Math.sin(dh),Math.cos(dh));const mt=(2.5)*Math.min(
 if(u.rev>0){u.rev-=dt;sp=-4;u.h+=u.pref*.9*dt}u.v+=(sp-u.v)*Math.min(1,(sp>u.v?1.6:3)*dt)}
 const nx=u.x+Math.sin(u.h)*u.v*dt,nz=u.z-Math.cos(u.h)*u.v*dt;
 const sgv=u.v>=0?1:-1;if(Math.abs(u.v)>.3&&blk(u,nx+Math.sin(u.h)*sgv*u.L*.5,nz-Math.cos(u.h)*sgv*u.L*.5)){u.v*=.2;u.stuck+=dt;u.pref=-u.pref;if(u.stuck>1.3&&!(u.rev>0)){u.rev=1.3;u.stuck=.2}}else{u.x=nx;u.z=nz;if(u.v>1)u.stuck=Math.max(0,u.stuck-dt)}
-if((u.stuck>4&&dp>60)||dp>330){const sp=spawnPt(u.kind==='boat'?110:105,u.kind==='boat'?260:190,u.kind==='boat');if(sp&&!W.units.concat(W.rbu).some(o=>o!==u&&dist(o.x,o.z,sp.x,sp.z)<9)){u.x=sp.x;u.z=sp.z;u.h=sp.h;u.v=0;u.stuck=0}else u.stuck=0}
+if((u.stuck>4&&dp>60)||dp>330){const sp=spawnPt(u.kind==='boat'?110:50,u.kind==='boat'?260:110,u.kind==='boat');if(sp&&!W.units.concat(W.rbu).some(o=>o!==u&&dist(o.x,o.z,sp.x,sp.z)<9)){u.x=sp.x;u.z=sp.z;u.h=sp.h;u.v=0;u.stuck=0}else u.stuck=0}
 u.g.position.set(u.x,u.kind==='boat'?Math.sin(performance.now()*.002+u.x)*.05:0,u.z);u.g.rotation.y=-u.h;u.g.rotation.z=u.dis>0?Math.sin(performance.now()*.02)*.08:0}
 const RES={a:.3,b:.4,c:.45,d:.55,e:.65,f:.72,g:.72,h:.75};
 function contact(u,dt){if(u.kind==='boat'||G.over)return;u.hc-=dt;const sh=Math.sin(S.h),ch=Math.cos(S.h),hw=(typeof PV!=='undefined'&&PV.hw)||.9,ol=(typeof PV!=='undefined'&&PV.ol)||2,k=u.L*.33,uf=[Math.sin(u.h),-Math.cos(u.h)],rn=u.Wd*.5;
@@ -163,7 +166,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{for(const
 /* ---------- তাপ ও তারা ---------- */
 function pedStar(n){let k=0;for(let i=1;i<=5;i++)if(n>=TP[i])k=i;return k}
 function starsOf(){return Math.min(5,pedStar(W.ped)+Math.floor(W.cop/5))}
-function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n>o){toast(MSG[n],3.8);W.spT=0;W.nx=o===0?rnd(4,9):Math.min(W.nx,rnd(3,6))}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
+function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n>o){toast(MSG[n],3.8);W.spT=0;W.nx=o===0?rnd(1.5,3):Math.min(W.nx,rnd(1,2.5))}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
 function addHeat(k){if(k==='ped')W.ped++;else if(k==='cop')W.cop++;else return;W.cc=0;W.dec=0;setStars(starsOf())}
 function dropStar(){const n=starsOf();if(n<=0){W.ped=W.cop=0;return}if(W.cop>=5)W.cop-=5;else{const p=pedStar(W.ped);W.ped=p>1?TP[p-1]:0}setStars(starsOf());if(W.stars===0)W.ped=W.cop=0}
 /* ---------- গোপন গ্যারেজ ---------- */
@@ -198,12 +201,12 @@ function bustCheck(dt){if(W.stars<=0){W.bust=0;return}let n=0;for(const u of W.u
 if(n>=(W.stars>=3?2:1)&&Math.abs(S.vf)<2.4)W.bust+=dt;else W.bust=Math.max(0,W.bust-dt*1.5);
 if(W.bust>=3.2){const fine=15000*W.stars;G.loss+=fine;toast('⛓️ ধরা পড়লেন! জরিমানা '+money(fine),3);W.bust=0;const w=LV[W.stars];W.stars=0;W.ped=W.cop=W.dec=0;try{endTrip('পুলিশের হাতে ধরা পড়লেন — '+w)}catch(e){console.error(e)}}}
 function tick(dt){if(!G.started||G.over){siren(0);return}
-W.tk+=dt;garTick(dt);const kmh=Math.abs(S.vf)*3.6;
+W.tk+=dt;garTick(dt);antiStuck(dt);const kmh=Math.abs(S.vf)*3.6;
 if(kmh>110){W.sp+=dt;if(W.sp>6){W.sp=-14;addHeat('speed');if(W.stars>0)toast('📸 অতিরিক্ত গতি — পুলিশ নজর রাখছে',2)}}else if(W.sp>0&&kmh<95)W.sp=Math.max(0,W.sp-dt);
 W.cc+=dt;
 if((W.ped||W.cop)&&W.cc>10){const nr=nearest(),rate=nr<75?.6:(nr>130?8:3.5);W.dec+=rate*dt;if(W.dec>=60){W.dec=0;dropStar()}}
 const tg=need(W.stars);W.spT-=dt;
-if(W.stars>0){W.nx-=dt;if(tg.heli&&!W.heli)spawn('heli');
+if(W.stars>0){W.nx-=dt;if(nearestGround()>110)W.nx=Math.min(W.nx,1.2);if(tg.heli&&!W.heli)spawn('heli');
 if(W.nx<=0){let k=null;for(const q of UK)if(q!=='boat'&&W.units.filter(u=>u.kind===q).length<tg[q]){k=q;break}
 if(!k)W.nx=2;else{W.nx=SPI[W.stars];W.alt=!W.alt;if(!(W.stars>=3&&W.alt&&!W.rbu.length&&roadblock()))spawn(k,Math.random()<.5)}}}
 if(W.spT<=0){W.spT=1.1;if(tg.boat&&W.units.filter(u=>u.kind==='boat').length<tg.boat)spawn('boat');
