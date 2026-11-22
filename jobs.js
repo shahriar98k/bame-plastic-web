@@ -9,37 +9,8 @@ const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.leng
 const dist=(ax,az,bx,bz)=>Math.hypot(ax-bx,az-bz);
 const slow=()=>Math.abs(S.vf)<1.8;
 
-/* ---------- রাইড-শেয়ার অ্যাপ: রেটিং, সার্জ, ব্যান, সময়সীমা ---------- */
-const mmss=t=>{t=Math.max(0,Math.round(t));return bn(String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'))};
-const RT={a:[5,5,5,4.5,5],ban:0},avgR=()=>RT.a.reduce((x,y)=>x+y,0)/RT.a.length;
-const RV={5:['দারুণ ড্রাইভার! একদম নিরাপদ, সময়মতো পৌঁছে দিল।','ঢাকায় এমন ড্রাইভার আছে জানতাম না। ৫ স্টার!','এসি-র মতো ঠান্ডা মাথা। আবার ডাকব।'],4:['ভালোই চালাইছে, একটু ঝাঁকি ছিল।','মোটামুটি ভালো। ব্রেকটা একটু আগে দিলে ভালো হতো।','পৌঁছাইছে ঠিকঠাক, তবে গান বাজাইলে আরও ভালো লাগত।'],3:['চলে। সিটবেল্ট না থাকলে হয়তো ঘুমাইয়া যাইতাম।','মাঝারি। গাড়ি না, রোলার কোস্টার।','পৌঁছাইছি এটাই বড় কথা।'],2:['ভাই, আমি এখনো কাঁপতেছি। ২ স্টার।','ব্রেক কি এই গাড়িতে আছে? দুই স্টার দিলাম, দয়া করে।','পথে দুইবার আল্লাহর নাম নিছি।'],1:['১ স্টার! এটা ড্রাইভিং না, ঢাকার পথে ক্ষেপণাস্ত্র নিক্ষেপ!','আর কখনো না! রিপোর্ট করলাম।','আমি তো যাত্রী, ক্রাশ টেস্ট ডামি না!']};
-function rate(n,txt){RT.a.push(n);if(RT.a.length>20)RT.a.shift();const av=avg();toast('⭐'.repeat(n)+' '+bn(n)+'/৫ — "'+txt+'" · আপনার রেটিং '+bn(av.toFixed(2)),4);
-if(av<3.5&&RT.a.length>=8&&RT.ban<=0){RT.ban=240;clearOffer();say('🚫 অ্যাকাউন্ট সাসপেন্ড! রেটিং ৩.৫-এর নিচে নামায় রাইড ও ডেলিভারি ৪ মিনিট বন্ধ। নতুন অর্ডার আসবে না।',5)}}
-function avg(){return avgR()}
-function unban(){RT.ban=0;RT.a=[4,4,4,4,4,4,4,4];J.cd=6;say('✅ আপিল মঞ্জুর! অ্যাকাউন্ট ফিরেছে — রেটিং ৪.০ থেকে নতুন করে শুরু।',4)}
-function review(j){let st=5,why='';const r=j.t/j.dl,pax=j.type==='pax';if(j.cr>0){st-=Math.min(2,j.cr);why='cr'}
-if(pax){if(j.tp>110){st-=2;why='fast'}else if(j.tp>85){st-=1;why=why||'fast'}}
-if(r>.92)st-=1;if(!pax){if(j.heat<=0)st-=2;else if(j.heat<40)st-=1}
-st=Math.max(1,Math.min(5,st));let txt=pick(RV[st]);if(pax&&st<=2&&why==='fast')txt='ড্রাইভার গাড়ি নয়, ক্ষেপণাস্ত্র চালায়!';rate(st,txt)}
-const SG={m:1,t:0,next:rnd(50,80)};
-const SGE=[['🌧️ বৃষ্টি নেমেছে',1.5,2.2],['🏢 অফিস ছুটির ভিড়',1.4,1.9],['🏏 ম্যাচ শেষ',1.6,2.4],['🌙 রাত বাড়ছে, গাড়ি কম',1.3,1.7],['🎉 উৎসবের আগের রাত',1.5,2.1]];
-function svTick(dt){if(SG.m>1){SG.t-=dt;if(SG.t<=0){SG.m=1;J.mult=1;say('⚡ সার্জ শেষ — ভাড়া স্বাভাবিক',2.4)}}else{SG.next-=dt;if(SG.next<=0){const e=pick(SGE);SG.m=Math.round(rnd(e[1],e[2])*10)/10;SG.t=rnd(80,140);SG.next=rnd(120,200);J.mult=SG.m;say('⚡ সার্জ প্রাইসিং: '+e[0]+' — এখন আয় '+bn(SG.m)+'x',3.6)}}}
-const hudExtra=()=>' · ⭐ '+bn(avgR().toFixed(1))+(SG.m>1?' · ⚡ '+bn(SG.m)+'x':'')+(RT.ban>0?' · 🚫 '+mmss(RT.ban):'');
-/* ---------- হালাল স্কোরবোর্ড (রাইডার / ডেলিভারি ম্যান) ---------- */
-let HLM=[];const hlLoad=()=>{try{return JSON.parse(localStorage.getItem('bp_hal')||'[]')}catch(e){return HLM.slice()}};
-function hlSave(a){HLM=a.slice(-300);try{localStorage.setItem('bp_hal',JSON.stringify(HLM))}catch(e){}}
-function submitHal(){if(J.sent)return;J.sent=1;const n=G.name||'চালক',t=Date.now(),a=hlLoad();if(J.haR>0)a.push({k:'ride',n,v:J.haR,c:J.rides,t});if(J.haD>0)a.push({k:'delivery',n,v:J.haD,c:J.dels,t});hlSave(a);
-if(window.BPNET&&BPNET.enabled){if(J.haR>0)BPNET.submitHalal('ride',n,J.haR,J.rides);if(J.haD>0)BPNET.submitHalal('delivery',n,J.haD,J.dels)}}
-let HK='ride',HP='d';const HAL={};
-function halBox(){const K=HK,P=HP,key=K+P;let rows=null,note='এই ফোনে সংরক্ষিত স্কোর';const o=HAL[key],net=window.BPNET&&BPNET.enabled;
-if(net){if(o&&o.rows){rows=o.rows.map(x=>({n:x.name,v:x.score,me:x.mine}));note='অনলাইন · সময়কালের মোট হালাল ইনকাম'}else if(!o||(o.done&&!o.rows&&Date.now()-o.t>15000)){HAL[key]={rows:null,t:Date.now()};BPNET.halalTop(K,P).then(r=>{HAL[key]={rows:r,t:Date.now(),done:1};const e=document.getElementById('sc');if(e&&e.style.display==='block')showScore()}).catch(()=>{HAL[key]={rows:null,t:Date.now(),done:1}})}else if(o&&!o.done)note='লোড হচ্ছে…'}
-if(!rows){const m={};for(const x of hlLoad())if(x.k===K&&inRange(x.t,P))m[x.n]=(m[x.n]||0)+x.v;rows=Object.keys(m).map(n=>({n,v:m[n],me:n===G.name})).sort((a,b)=>b.v-a.v).slice(0,20)}
-const tb=(arr,cur,at)=>'<div class="tabs ht">'+arr.map(x=>'<button data-'+at+'="'+x[0]+'" class="'+(cur===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
-const ttl={ride:{d:'আজকের সেরা রাইডার',w:'সপ্তাহের সেরা রাইডার',m:'মাসের সেরা রাইডার'},delivery:{d:'আজকের সেরা ডেলিভারি ম্যান',w:'সপ্তাহের সেরা ডেলিভারি ম্যান',m:'মাসের সেরা ডেলিভারি ম্যান'}}[K][P];
-return '<div class="box"><b>✅ হালাল ইনকাম স্কোরবোর্ড</b>'+tb([['ride','🚕 রাইডার'],['delivery','📦 ডেলিভারি']],K,'hk')+tb([['d','আজ'],['w','সপ্তাহ'],['m','মাস']],P,'hp')+'<div class="pl">'+ttl+'</div><table>'+(rows.length?rows.map((x,i)=>'<tr'+(x.me?' class="me"':'')+'><td>'+bn(i+1)+'. '+esc(x.n)+'</td><td>'+fm(x.v)+'</td></tr>').join(''):'<tr><td>'+(note==='লোড হচ্ছে…'?note:'এখনো কেউ নেই')+'</td><td></td></tr>')+'</table><div class="sub">'+note+'</div></div>'}
-
 /* ---------- state ---------- */
-const J={halal:0,haR:0,haD:0,rides:0,dels:0,fails:0,tips:0,cold:0,job:null,offer:null,cd:KM?3:18,first:1,t:0};
+const J={halal:0,rides:0,dels:0,fails:0,tips:0,cold:0,job:null,offer:null,cd:KM?3:18,first:1,t:0};
 window.BPJ=J;
 
 /* ---------- words ---------- */
@@ -203,14 +174,14 @@ let dx=p[0],dz=p[1],cust=null,figD=null;
 if(del){const s=side(p);dx=s.x;dz=s.z;cust=pick(KM?CUST_K:CUST_D);figD=person(s.x,s.z,s.ry)}
 const dName=placeName(p[0],p[1],p[4]),d0=dist(o.x,o.z,dx,dz),mult=MULT[PKIND]||1,top=(PV&&PV.top)||15;
 const est=d0/(.55*top)+25;
-const pay=Math.round(((isPax?40+d0*.10:70+d0*.09)*mult*(J.mult||1))/5)*5;const DL=Math.max(120,Math.min(480,Math.round((100+d0/6.2+pay*.35)/5)*5));
-const job={type:o.type,brand:o.brand,item:o.item,col:o.col,tc:o.tc,dest:{x:dx,z:dz,name:dName},cust,figD,d0,est,pay,dl:DL,cr:0,tp:0,warned:0,t:0,heat:100,imm:2.5,chat:rnd(14,26),slowT:0,
+const pay=Math.round(((isPax?40+d0*.10:70+d0*.09)*mult*(J.mult||1))/5)*5;
+const job={type:o.type,brand:o.brand,item:o.item,col:o.col,tc:o.tc,dest:{x:dx,z:dz,name:dName},cust,figD,d0,est,pay,t:0,heat:100,imm:2.5,chat:rnd(14,26),slowT:0,
 ico:icon(isPax?'গন্তব্য':(o.type==='med'?'ওষুধ':'খাবার'),'#34d399','#073b2a'),bm:beam(0x34d399)};
 job.ico.position.set(dx,3.4,dz);sc.add(job.ico);job.bm.position.set(dx,0,dz);sc.add(job.bm);
 if(isPax&&o.fig){chooseSide(o.fig.position.x,o.fig.position.z);job.pg={g:o.fig,st:'walk',t:0,k:0,ph:0};o.fig=null}else{kill(o.fig);o.fig=null}kill(o.ico);o.ico=null;kill(o.beam);o.beam=null;J.offer=null;J.job=job;
 if(isPax){
-say('🙋 যাত্রী: '+pick(KM?GREET_K:GREET_D).replace('{d}',dName),3.4);say('🙂 আপনি: উঠেন ভাই, ঠিকমতো পৌঁছে দিব।',2.2);say2('🙋 যাত্রী: '+pick(WARN),2.8);say2('⏱ সময়সীমা '+mmss(DL)+' — দেরি হলে যাত্রী নেমে যাবে',2.8)}
-else{card(o.brand,o.col,o.tc,(o.type==='med'?'💊 ':'🍲 ')+o.item+'<br>গ্রাহক: '+cust+'<br>📍 '+dName+'<br>ডেলিভারি পে: '+money(pay)+'<br>⏱ সময়সীমা: '+mmss(DL));
+say('🙋 যাত্রী: '+pick(KM?GREET_K:GREET_D).replace('{d}',dName),3.4);say('🙂 আপনি: উঠেন ভাই, ঠিকমতো পৌঁছে দিব।',2.2);say2('🙋 যাত্রী: '+pick(WARN),2.8)}
+else{card(o.brand,o.col,o.tc,(o.type==='med'?'💊 ':'🍲 ')+o.item+'<br>গ্রাহক: '+cust+'<br>📍 '+dName+'<br>ডেলিভারি পে: '+money(pay));
 say((o.type==='med'?'💊 ফার্মেসী: ':'🍽️ '+o.brand+' স্টাফ: ')+'এই নেন ভাই, '+o.item+'। সাবধানে নিয়া যাইয়েন!',3);say2('🙂 আপনি: দুর্ঘটনা ছাড়া পৌঁছে দিব।',2.2)}}
 
 /* ---------- finish / cancel ---------- */
@@ -219,21 +190,20 @@ function complete(){const j=J.job;if(!j)return;const isPax=j.type==='pax';let pa
 if(isPax){if(j.t<=j.est*1.15)tip=Math.round(pay*.15/5)*5;msg='🙋 যাত্রী: আলহামদুলিল্লাহ, পৌঁছাইলাম! ভাড়া '+money(pay)+(tip?'। বাকিটা রাখেন — '+money(tip)+' বখশিশ।':'।');exitPax(j.pg);j.pg=null}
 else{const h=Math.max(0,j.heat);if(h<=0){pay=Math.round(pay*.6);J.cold++;msg='😠 '+j.cust+': এ কী! খাবার তো বরফ হইয়া গেছে! যা পাইছেন নেন — '+money(pay)}
 else{tip=Math.round(pay*.35*h/100/5)*5;msg='😊 '+j.cust+': আসছেন! '+(j.type==='med'?'ওষুধ ঠিকঠাক পৌঁছাইছে':'খাবার এখনো গরম ('+bn(Math.round(h))+'%)')+'। ধন্যবাদ! '+money(pay)+(tip?' + বখশিশ '+money(tip):'')}j.keepFig=1}
-const tot=pay+tip;J.halal+=tot;J.tips+=tip;G.cash+=tot;if(isPax){J.rides++;J.haR+=tot}else{J.dels++;J.haD+=tot}
-say(msg,3.6);say('✅ হালাল ইনকাম +'+money(tot),2.4);review(j);endJobMarkers(j);J.job=null;J.cd=14}
+const tot=pay+tip;J.halal+=tot;J.tips+=tip;G.cash+=tot;if(isPax)J.rides++;else J.dels++;
+say(msg,3.6);say('✅ হালাল ইনকাম +'+money(tot),2.4);endJobMarkers(j);J.job=null;J.cd=14}
 function killVis(j){if(j){if(j.pg){if(j.pg.g&&j.pg.st!=='in')kill(j.pg.g);j.pg=null}kill(j.figD);j.figD=null}kill(J.pk);J.pk=null;if(J.ho){kill(J.ho.staff);kill(J.ho.pk);J.ho=null}}
-function cancel(reason){const j=J.job;if(!j)return;J.fails++;const late=reason==='late';if(j.pg){exitPax(j.pg);j.pg=null}
-if(late){say(j.type==='pax'?'🙋 যাত্রী: আর অপেক্ষা করতে পারব না, অন্য গাড়ি ডাকলাম!':'📞 '+(j.cust||'গ্রাহক')+': এত দেরি! অর্ডার ক্যান্সেল করলাম।',3.8)}else if(j.type==='pax')say('🙋 যাত্রী: '+pick(SCOLD_P),3.8);else say(pick(j.type==='med'?SCOLD_M:SCOLD_D).replace('{brand}',j.brand),3.8);
-say(late?'⏰ সময় শেষ — '+(j.type==='pax'?'রাইড':'অর্ডার')+' বাতিল, কোনো আয় নেই':'❌ '+(j.type==='pax'?'রাইড':'অর্ডার')+' বাতিল — দুর্ঘটনায় কোনো আয় নেই',2.8);rate(1,late?'ড্রাইভার এত দেরি করে, আমার ফ্লাইট মিস!':pick(RV[1]));killVis(j);endJobMarkers(j);J.job=null;J.cd=20}
+function cancel(reason){const j=J.job;if(!j)return;J.fails++;if(j.pg){exitPax(j.pg);j.pg=null}
+if(j.type==='pax')say('🙋 যাত্রী: '+pick(SCOLD_P),3.8);else say(pick(j.type==='med'?SCOLD_M:SCOLD_D).replace('{brand}',j.brand),3.8);
+say('❌ '+(j.type==='pax'?'রাইড':'অর্ডার')+' বাতিল — দুর্ঘটনায় কোনো আয় নেই',2.8);killVis(j);endJobMarkers(j);J.job=null;J.cd=20}
 function dropAll(){clearOffer();const j=J.job;killVis(j);if(j){endJobMarkers(j);J.job=null}anims.length=0;J.route=null}
 
 /* ---------- per-frame ---------- */
 function tick(dt){if(!G.started||G.over){return}
-J.t+=dt;svTick(dt);animsTick(dt);hoTick(dt);outTick(dt);routeTick(dt);
+J.t+=dt;animsTick(dt);hoTick(dt);outTick(dt);routeTick(dt);
 if(J.job){for(const o of OBJ)if(o.k==='stop'){o.done=true;o.missed=true}if(OBJV)OBJV.t+=dt}
-if(RT.ban>0&&!J.job){RT.ban-=dt;if(RT.ban<=0)unban();if(J.offer)clearOffer();return}
 const j=J.job;
-if(j){j.t+=dt;if(j.imm>0)j.imm-=dt;j.tp=Math.max(j.tp,Math.abs(S.vf)*3.6);if(!j.out){const left=j.dl-j.t;if(left<=30&&!j.warned){j.warned=1;say('⏰ আর ৩০ সেকেন্ড! তাড়াতাড়ি করুন',2.4)}if(left<=0){cancel('late');return}}j.ico.position.y=3.4+Math.sin(J.t*3)*.25;
+if(j){j.t+=dt;if(j.imm>0)j.imm-=dt;j.ico.position.y=3.4+Math.sin(J.t*3)*.25;
 if(j.pg)boardTick(j,dt);if(j.type!=='pax'&&!j.out)j.heat=Math.max(0,j.heat-dt*100/(j.est*1.5));
 const d=dist(S.x,S.z,j.dest.x,j.dest.z);if(d<14&&slow()){if(j.type==='pax'){complete();return}else if(!j.out)startOut()}
 if(j.type==='pax'){j.chat-=dt;const kmh=Math.abs(S.vf)*3.6;if(kmh<10&&Math.abs(S.vf)>.3)j.slowT+=dt;else j.slowT=0;
@@ -250,10 +220,10 @@ if(d<12&&slow()){if(o.type==='pax')startJob();else beginIn()}}
 function target(){const j=J.job;if(j)return{x:j.dest.x,z:j.dest.z,col:'#34d399'};const o=J.offer;if(o)return{x:o.x,z:o.z,col:o.col};return null}
 let lastHL='',lastJB='';
 function jhud(){const on=G.started&&!G.over;hlE.style.display=on?'block':'none';if(!on){jbE.style.display='none';return}
-const h='✅ হালাল ইনকাম '+money(J.halal)+hudExtra();if(h!==lastHL){hlE.textContent=h;lastHL=h}
+const h='✅ হালাল ইনকাম '+money(J.halal);if(h!==lastHL){hlE.textContent=h;lastHL=h}
 const t=target();if(!t){jbE.style.display='none';return}
 const dx=t.x-S.x,dz=t.z-S.z,m=Math.round(Math.hypot(dx,dz)),j=J.job,o=J.offer;let tx;
-if(j){tx=j.type==='pax'?'🚕 '+j.dest.name:(j.type==='med'?'💊 ':'📦 ')+j.cust+' · '+j.dest.name;tx+=' · '+bn(m)+' মি';tx+=j.type==='pax'?' · '+money(j.pay):' · '+(j.type==='med'?'⏳ ':'🍲 ')+bn(Math.round(j.heat))+'% · '+money(j.pay);tx+=' · ⏱ '+mmss(Math.max(0,j.dl-j.t));$('ob').style.display='none'}
+if(j){tx=j.type==='pax'?'🚕 '+j.dest.name:(j.type==='med'?'💊 ':'📦 ')+j.cust+' · '+j.dest.name;tx+=' · '+bn(m)+' মি';tx+=j.type==='pax'?' · '+money(j.pay):' · '+(j.type==='med'?'⏳ ':'🍲 ')+bn(Math.round(j.heat))+'% · '+money(j.pay);$('ob').style.display='none'}
 else tx=(o.type==='pax'?'🙋 যাত্রী ডাকছে':(o.type==='med'?'💊 ':'📞 ')+o.brand+' · অর্ডার')+' · '+bn(m)+' মি';
 const rot=Math.atan2(dx,-dz)-S.h;jbE.style.display='block';const key=tx;if(key!==lastJB){jbE.innerHTML='<span id="jba" style="display:inline-block;color:#6ee7b7">▲</span> '+tx;lastJB=key}
 const a=document.getElementById('jba');if(a)a.style.transform='rotate('+rot+'rad)'}
@@ -273,7 +243,7 @@ function score(){const e=document.getElementById('sc'),t=e&&e.querySelector('tab
 let r='<tr><td>✅ হালাল ইনকাম (রাইড ও ডেলিভারি)</td><td>'+fm(J.halal)+'</td></tr>';
 if(J.rides)r+='<tr><td>🚕 সফল রাইড</td><td>'+bn(J.rides)+' টি</td></tr>';if(J.dels)r+='<tr><td>📦 সফল ডেলিভারি</td><td>'+bn(J.dels)+' টি</td></tr>';
 if(J.tips)r+='<tr><td>🎁 বখশিশ</td><td>'+fm(J.tips)+'</td></tr>';if(J.cold)r+='<tr><td>🥶 ঠান্ডা খাবারের অভিযোগ</td><td>'+bn(J.cold)+' বার</td></tr>';if(J.fails)r+='<tr><td>❌ দুর্ঘটনায় বাতিল</td><td>'+bn(J.fails)+' বার</td></tr>';
-t.insertAdjacentHTML('beforeend',r);t.insertAdjacentHTML('afterend','<div class="box">✅ '+scoreLine()+'</div>'+halBox());document.querySelectorAll('#sc .ht button').forEach(b=>b.onclick=()=>{if(b.dataset.hk)HK=b.dataset.hk;if(b.dataset.hp)HP=b.dataset.hp;showScore()})}
+t.insertAdjacentHTML('beforeend',r);t.insertAdjacentHTML('afterend','<div class="box">✅ '+scoreLine()+'</div>')}
 
 /* ---------- hooks on game1.js functions ---------- */
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPJ',name,e)}return r}}
@@ -282,8 +252,8 @@ after('gameTick',tick);
 after('hud',jhud);
 after('drawMini',mini);
 after('showScore',score);
-after('crime',function(a,m,k){if(J.job){J.job.cr++;if(J.job.imm<=0)cancel(k)}});
-before('endTrip',function(){try{submitHal()}catch(e){console.error(e)}dropAll()});
+after('crime',function(a,m,k){if(J.job&&J.job.imm<=0)cancel(k)});
+before('endTrip',dropAll);
 setTimeout(()=>{try{if(!NG)buildNG()}catch(e){}},2500);
 window.BPJ_T={tick,startJob,makeOffer,complete,cancel,pts,ring,placeName,jhud,scoreLine,clearOffer,beginIn,routeTo};
 })();
