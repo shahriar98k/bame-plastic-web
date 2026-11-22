@@ -214,6 +214,6 @@ function cleanup(){finRec();musicOff();clearEv();try{speechSynthesis.cancel()}ca
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPX',name,e)}return o.apply(this,arguments)}}
 {const o=window.step;if(typeof o==='function')window.step=function(dt){const v0=S.vf;o.apply(this,arguments);const v1=S.vf;if(G.over||!isFinite(v1))return;const k=(inp.B||inp.V)?3.2:5;S.vf=(v1===0&&Math.abs(v0)<.3)?0:v0+(v1-v0)*Math.min(1,k*dt)}}
-after('gameTick',tick);after('hud',capture);after('hud',recTick);after('drawMini',mini);after('crime',onCrime);after('showScore',score);before('endTrip',cleanup);
+after('gameTick',tick);after('hud',capture);after('drawMini',mini);after('crime',onCrime);after('showScore',score);before('endTrip',cleanup);
 window.BPX_T={tick,spawnEv,clearEv,wxTick,news,statLines,title,buildViral,capture,onCrime};
 })();
