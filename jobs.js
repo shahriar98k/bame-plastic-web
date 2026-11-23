@@ -261,9 +261,9 @@ function mini(){const t=target();if(!t)return;const c=MC;routeDraw(c);c.save();c
 c.fillStyle=t.col;c.strokeStyle='#fff';c.lineWidth=3;c.beginPath();c.arc(px,py,9,0,7);c.fill();c.stroke();c.restore()}
 function pctTxt(p){return bn(p<1?p.toFixed(3):p.toFixed(1))+'%'}
 function scoreLine(){const l=(typeof LBREC!=='undefined'&&LBREC&&LBREC.l)||G.loss||0,h=J.halal;
-if(h<=0)return'হালাল ইনকাম ৳০। চ্যাডের খুশির পুরোটাই হারাম খরচ — একটা রাইড বা ডেলিভারিও করেননি!';
+if(h<=0)return'হালাল ইনকাম ৳০। মাস্তানির জরিমানার পুরোটাই হারাম খরচ — একটা রাইড বা ডেলিভারিও করেননি!';
 if(l<=0)return'ক্ষতি ছাড়াই '+money(h)+' হালাল ইনকাম! এমন চ্যাড ঢাকায় বিরল।';
-const p=h/l*100,s='চ্যাডের খুশি '+money(l)+', হালাল ইনকাম '+money(h)+' — ';
+const p=h/l*100,s='মাস্তানির জরিমানা '+money(l)+', হালাল ইনকাম '+money(h)+' — ';
 if(p<.01)return s+'ক্ষতির মাত্র '+pctTxt(p)+' পূরণ হলো। মামা, এইভাবে দেশ চলে?';
 if(p<1)return s+'ক্ষতির '+pctTxt(p)+' ফেরত দিলেন। অন্তত চেষ্টা তো করলেন!';
 if(p<10)return s+'ক্ষতির '+pctTxt(p)+' পূরণ। পথ এখনো অনেক বাকি, ভাই।';

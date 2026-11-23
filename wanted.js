@@ -295,13 +295,13 @@ if(t>=1.4&&!z.fn){z.fn=1;z.el.classList.add('fn')}
 if(t>=1.5){const b=q('.bf2 b');if(b)b.textContent=money(z.fine*ez((t-1.5)/1.2))}
 if(t>4.35)q('.bk2').style.opacity=Math.min(1,(t-4.35)/.65);
 if(t>=5)bzFinish()};
-const BT=[0,12,12,11,10,10];
+const BT=[0,16,16,15,14,14];
 function bustCheck(dt){if(W.stars<=0){W.bust=0;return}let n=0;for(const u of W.units)if(u.kind!=='boat'&&u.dis<=0&&dist(u.x,u.z,S.x,S.z)<8.5)n++;
 const nd=W.stars>=3?2:1,v=Math.abs(S.vf),T=BT[W.stars]||4;
-if(n>=nd&&v<2)W.bust+=dt*(1+.35*(n-nd));else if(n>=nd&&v<4){}else W.bust=Math.max(0,W.bust-dt*(v>6?3:1.5));
-if(W.bust>=T&&!BZ){const fine=15000*W.stars,w=LV[W.stars],stars=W.stars;G.loss+=fine;W.bust=0;
-try{startBust(fine,w,stars)}catch(e){console.error(e);bzEnd();W.stars=0;W.ped=W.cop=W.dec=0;try{endTrip('পুলিশের হাতে ধরা পড়লেন — '+w)}catch(x){console.error(x)}}}}
-function tick(dt){if(!G.started||G.over){siren(0);return}
+if(n>=nd&&v<2)W.bust+=dt*Math.min(1.4,1+.1*(n-nd));else if(n>=nd&&v<4){}else W.bust=Math.max(0,W.bust-dt*(v>6?3:1.5));
+if(W.bust>=T&&!BZ){const fine=100000*W.stars,w=LV[W.stars],stars=W.stars;G.loss+=fine;W.bust=0;
+try{startBust(G.loss,w,stars)}catch(e){console.error(e);bzEnd();W.stars=0;W.ped=W.cop=W.dec=0;try{endTrip('পুলিশের হাতে ধরা পড়লেন — '+w)}catch(x){console.error(x)}}}}
+function tick(dt){if(!G.started||G.over){siren(0);return}if(W.stars>0&&typeof MOB!=='undefined'&&MOB>0)MOB=.001;
 W.tk+=dt;garTick(dt);antiStuck(dt);const kmh=Math.abs(S.vf)*3.6;
 if(kmh>110){W.sp+=dt;if(W.sp>6){W.sp=-14;addHeat('speed');if(W.stars>0)toast('📸 অতিরিক্ত গতি — পুলিশ নজর রাখছে',2)}}else if(W.sp>0&&kmh<95)W.sp=Math.max(0,W.sp-dt);
 W.cc+=dt;

@@ -116,10 +116,10 @@ else if(rcx){rcx.clearRect(0,0,rw,rh)}}
 /* ================= খবর তৈরি (আসল সংখ্যা থেকে) ================= */
 const LOSSM=[1e4,5e4,1e5,5e5,1e6,5e6,1e7,5e7],TOPM=[80,100,120,140,160];
 function crimeNews(a,m,k){if(!k)return;const r=roadNow(),n=G.name||'চালক';
-const t={ped:r+'-এ এক চালকের ধাক্কায় পথচারী ছিটকে পড়েছেন। ক্ষতির অঙ্ক এখন '+money(G.loss),veh:r+'-এ যানবাহনে ধাক্কা, যান চলাচল ব্যাহত। চ্যাডের খুশি '+money(G.loss),cart:r+'-এ পথের দোকান ভেঙেছে; ব্যবসায়ীরা ক্ষতিপূরণ চান',wall:r+'-এ দেয়ালে ধাক্কা; দেয়াল অক্ষত, গাড়ির মান-সম্মান ক্ষত-বিক্ষত',prop:r+'-এ খুঁটি বা বিলবোর্ডে ধাক্কা; সংশ্লিষ্ট বিভাগ ক্ষুব্ধ'}[k];
+const t={ped:r+'-এ এক চালকের ধাক্কায় পথচারী ছিটকে পড়েছেন। ক্ষতির অঙ্ক এখন '+money(G.loss),veh:r+'-এ যানবাহনে ধাক্কা, যান চলাচল ব্যাহত। মাস্তানির জরিমানা '+money(G.loss),cart:r+'-এ পথের দোকান ভেঙেছে; ব্যবসায়ীরা ক্ষতিপূরণ চান',wall:r+'-এ দেয়ালে ধাক্কা; দেয়াল অক্ষত, গাড়ির মান-সম্মান ক্ষত-বিক্ষত',prop:r+'-এ খুঁটি বা বিলবোর্ডে ধাক্কা; সংশ্লিষ্ট বিভাগ ক্ষুব্ধ'}[k];
 if(t&&(a>=50000||Math.random()<.45))news('এইমাত্র খবর: '+t+'।')}
 function newsTick(dt){X.spdSum+=Math.abs(S.vf)*3.6*dt;X.spdN+=dt;
-while(X.lossM<LOSSM.length&&G.loss>=LOSSM[X.lossM]){news('এইমাত্র খবর: চ্যাডের খুশি '+money(LOSSM[X.lossM])+' ছাড়িয়েছে। অর্থনীতিবিদরা বলছেন: "চালককে থামান!"');X.lossM++}
+while(X.lossM<LOSSM.length&&G.loss>=LOSSM[X.lossM]){news('এইমাত্র খবর: মাস্তানির জরিমানা '+money(LOSSM[X.lossM])+' ছাড়িয়েছে। অর্থনীতিবিদরা বলছেন: "চালককে থামান!"');X.lossM++}
 const top=(typeof TR!=='undefined'&&TR.top)||0;while(X.topM<TOPM.length&&top>=TOPM[X.topM]){news('গতির রেকর্ড: ঘণ্টায় '+bn(TOPM[X.topM])+' কিমি ছুঁয়েছে। এ শহরে এটাকে বলে বিমান!');X.topM++}
 if(J.rides>X.lastR){X.lastR=J.rides;news('এইমাত্র খবর: এক যাত্রী নিরাপদে গন্তব্যে পৌঁছেছেন — এ শহরে এটাই এখন বড় খবর!')}
 if(J.dels>X.lastD){X.lastD=J.dels;news('এইমাত্র খবর: ডেলিভারি সময়মতো পৌঁছেছে। গ্রাহক হতভম্ব!')}
