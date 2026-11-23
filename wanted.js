@@ -109,8 +109,14 @@ function nearest(){let b=1e9;for(const u of W.units){const d=dist(u.x,u.z,S.x,S.
 const TOP=()=>(typeof PV!=='undefined'&&PV.top)||18;
 function moveUnit(u,dt){const T=TOP(),pv=Math.abs(S.vf),fx=Math.sin(S.h),fz=-Math.cos(S.h);let tx=S.x+fx*Math.sign(S.vf||1)*pv*.7,tz=S.z+fz*Math.sign(S.vf||1)*pv*.7;const dp=dist(u.x,u.z,S.x,S.z);
 if(u.dis>0){u.dis-=dt;u.v*=Math.pow(.2,dt);u.h+=u.spin*dt;u.spin*=.96;if(u.dis<=0)u.spin=0}
-else{let tgt=Math.atan2(tx-u.x,-(tz-u.z)),base=('efgh'.indexOf(u.kind)>=0?.86:.92)+.035*W.stars;if(u.kind==='boat')base=.8;
-let sp=T*base;if(dp>220)sp*=1.5;else if(dp<16)sp=Math.max(pv*1.03,4);for(const o of W.rbu)if(dist(o.x,o.z,u.x,u.z)<11){sp=Math.min(sp,3);break}
+else{if(u.ax===undefined){u.ax=tx;u.az=tz}
+const kf=Math.min(1,dt*(dp<22?4.5:2));u.ax+=(tx-u.ax)*kf;u.az+=(tz-u.az)*kf;tx=u.ax;tz=u.az;
+const rx=u.x-S.x,rz=u.z-S.z,ah=rx*fx+rz*fz,hx=Math.sin(u.h),hz=-Math.cos(u.h),face=dp>1?(-rx*hx-rz*hz)/dp:0;
+const appr=u.kind!=='boat'&&ah>-2&&(ah>6||u.side)&&dp<115&&pv>3&&face>.1;
+if(appr){if(!u.side)u.side=(rx*(-fz)+rz*fx)>=0?1:-1;tx+=-fz*u.side*5.5;tz+=fx*u.side*5.5}else u.side=0;
+const turnA=!appr&&u.kind!=='boat'&&ah<2&&(hx*fx+hz*fz)<-.2&&dp<70&&pv>3;
+let tgt=Math.atan2(tx-u.x,-(tz-u.z)),base=('efgh'.indexOf(u.kind)>=0?.86:.92)+.035*W.stars;if(u.kind==='boat')base=.8;
+let sp=T*base;if(appr&&dp<70)sp*=.8;if(turnA)sp=Math.min(sp,7);if(dp>220)sp*=1.5;else if(dp<16)sp=Math.max(pv*1.03,4);for(const o of W.rbu)if(dist(o.x,o.z,u.x,u.z)<11){sp=Math.min(sp,3);break}
 const la=Math.max(4,u.v*.7+3);let ok=false;const offs=[0,.5*u.pref,-.5*u.pref,1*u.pref,-1*u.pref,1.6*u.pref,-1.6*u.pref];
 for(const o of offs){const a=tgt+o;if(!blk(u,u.x+Math.sin(a)*la,u.z-Math.cos(a)*la)&&!blk(u,u.x+Math.sin(a)*la*.5,u.z-Math.cos(a)*la*.5)){tgt=a;ok=true;break}}
 if(!ok){sp=0;tgt=u.h+u.pref*1.2}
@@ -166,7 +172,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{for(const
 /* ---------- তাপ ও তারা ---------- */
 function pedStar(n){let k=0;for(let i=1;i<=5;i++)if(n>=TP[i])k=i;return k}
 function starsOf(){return Math.min(5,pedStar(W.ped)+Math.floor(W.cop/5))}
-function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n>o){toast(MSG[n],3.8);W.spT=0;W.nx=o===0?rnd(1.5,3):Math.min(W.nx,rnd(1,2.5))}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
+function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n>o){toast(MSG[n],3.8);W.spT=0;if(o===0){W.nx=rnd(5.5,8);W.arr=W.nx}else W.nx=Math.min(W.nx,rnd(4,6))}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
 function addHeat(k){if(k==='ped')W.ped++;else if(k==='cop')W.cop++;else return;W.cc=0;W.dec=0;setStars(starsOf())}
 function dropStar(){const n=starsOf();if(n<=0){W.ped=W.cop=0;return}if(W.cop>=5)W.cop-=5;else{const p=pedStar(W.ped);W.ped=p>1?TP[p-1]:0}setStars(starsOf());if(W.stars===0)W.ped=W.cop=0}
 /* ---------- গোপন গ্যারেজ ---------- */
@@ -189,7 +195,7 @@ if(ctx.state==='suspended')ctx.resume();const t=ctx.currentTime,f=820+300*Math.s
 let pill=null,lastTxt='';
 function mkPill(){pill=document.createElement('div');pill.id='wn';pill.className='p';pill.style.cssText='right:8px;top:calc(var(--st) + 166px);font-size:13px;display:none;z-index:12;max-width:62vw;text-align:right';document.body.appendChild(pill)}
 function hudTick(){if(!pill)mkPill();if(!G.started||G.over||W.stars<=0){pill.style.display='none';lastTxt='';return}
-let t='🚨 '+'★'.repeat(W.stars)+'☆'.repeat(5-W.stars);if(W.bust>.2)t+=' · ⛓️ ধরা পড়ছেন '+bn(Math.min(100,Math.round(W.bust/3.2*100)))+'%';else if(W.cc>10&&nearest()>75)t+=' · 🕶️ লুকিয়ে আছেন…';else t+=' · '+LV[W.stars];
+let t='🚨 '+'★'.repeat(W.stars)+'☆'.repeat(5-W.stars);if(W.bust>.2)t+=' · ⛓️ ধরা পড়ছেন '+bn(Math.min(100,Math.round(W.bust/(BT[W.stars]||4)*100)))+'%';else if(W.cc>10&&nearest()>75)t+=' · 🕶️ লুকিয়ে আছেন…';else t+=' · '+LV[W.stars];
 if(t!==lastTxt){lastTxt=t;pill.textContent=t;pill.style.color=W.stars>=4?'#ff6b6b':'#ffd166'}pill.style.display='block'}
 function mini(){const dmg=window.BPD?BPD.v:0;if(W.stars<=0&&dmg<20)return;if(!W.gar)return;const c=MC,ca=Math.cos(-S.h),sa=Math.sin(-S.h);c.save();c.translate(150,150);
 const P=(x,z)=>{const X=(x-S.x)*K,Y=(z-S.z)*K;let px=X*ca-Y*sa,py=X*sa+Y*ca;const r=Math.hypot(px,py),lim=132;if(r>lim){px*=lim/r;py*=lim/r}return[px,py]};
@@ -197,16 +203,18 @@ for(const q of W.gar){const p=P(q.x,q.z);c.fillStyle='#a855f7';c.strokeStyle='#f
 if(W.stars>0){const f=Math.floor(performance.now()/220)%2;for(const u of W.units){const p=P(u.x,u.z);c.fillStyle=f?'#ff3b3b':'#3b6bff';c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.arc(p[0],p[1],5,0,7);c.fill();c.stroke()}if(W.heli){const p=P(W.heli.x,W.heli.z);c.fillStyle='#ffd60a';c.strokeStyle='#000';c.lineWidth=2;c.beginPath();c.arc(p[0],p[1],6,0,7);c.fill();c.stroke()}}
 c.restore()}
 /* ---------- মূল টিক ---------- */
+const BT=[0,5.5,5,4.5,4,3.5];
 function bustCheck(dt){if(W.stars<=0){W.bust=0;return}let n=0;for(const u of W.units)if(u.kind!=='boat'&&u.dis<=0&&dist(u.x,u.z,S.x,S.z)<8.5)n++;
-if(n>=(W.stars>=3?2:1)&&Math.abs(S.vf)<2.4)W.bust+=dt;else W.bust=Math.max(0,W.bust-dt*1.5);
-if(W.bust>=3.2){const fine=15000*W.stars;G.loss+=fine;toast('⛓️ ধরা পড়লেন! জরিমানা '+money(fine),3);W.bust=0;const w=LV[W.stars];W.stars=0;W.ped=W.cop=W.dec=0;try{endTrip('পুলিশের হাতে ধরা পড়লেন — '+w)}catch(e){console.error(e)}}}
+const nd=W.stars>=3?2:1,v=Math.abs(S.vf),T=BT[W.stars]||4;
+if(n>=nd&&v<2)W.bust+=dt*(1+.35*(n-nd));else if(n>=nd&&v<4){}else W.bust=Math.max(0,W.bust-dt*(v>6?3:1.5));
+if(W.bust>=T){const fine=15000*W.stars;G.loss+=fine;toast('⛓️ ধরা পড়লেন! জরিমানা '+money(fine),3);W.bust=0;const w=LV[W.stars];W.stars=0;W.ped=W.cop=W.dec=0;try{endTrip('পুলিশের হাতে ধরা পড়লেন — '+w)}catch(e){console.error(e)}}}
 function tick(dt){if(!G.started||G.over){siren(0);return}
 W.tk+=dt;garTick(dt);antiStuck(dt);const kmh=Math.abs(S.vf)*3.6;
 if(kmh>110){W.sp+=dt;if(W.sp>6){W.sp=-14;addHeat('speed');if(W.stars>0)toast('📸 অতিরিক্ত গতি — পুলিশ নজর রাখছে',2)}}else if(W.sp>0&&kmh<95)W.sp=Math.max(0,W.sp-dt);
 W.cc+=dt;
 if((W.ped||W.cop)&&W.cc>10){const nr=nearest(),rate=nr<75?.6:(nr>130?8:3.5);W.dec+=rate*dt;if(W.dec>=60){W.dec=0;dropStar()}}
 const tg=need(W.stars);W.spT-=dt;
-if(W.stars>0){W.nx-=dt;if(nearestGround()>110)W.nx=Math.min(W.nx,1.2);if(tg.heli&&!W.heli)spawn('heli');
+if(W.stars>0){W.nx-=dt;W.arr=Math.max(0,(W.arr||0)-dt);if(!W.arr&&nearestGround()>110)W.nx=Math.min(W.nx,1.2);if(tg.heli&&!W.heli)spawn('heli');
 if(W.nx<=0){let k=null;for(const q of UK)if(q!=='boat'&&W.units.filter(u=>u.kind===q).length<tg[q]){k=q;break}
 if(!k)W.nx=2;else{W.nx=SPI[W.stars];W.alt=!W.alt;if(!(W.stars>=3&&W.alt&&!W.rbu.length&&roadblock()))spawn(k,Math.random()<.5)}}}
 if(W.spT<=0){W.spT=1.1;if(tg.boat&&W.units.filter(u=>u.kind==='boat').length<tg.boat)spawn('boat');
@@ -228,7 +236,7 @@ const px=H.x,pz=H.z;H.x+=(tx-H.x)*k;H.z+=(tz-H.z)*k;H.y+=(ty-H.y)*Math.min(1,dt*
 const vx=H.x-px,vz=H.z-pz;if(vx*vx+vz*vz>1e-6)H.h=Math.atan2(vx,vz);H.g.position.set(H.x,H.y+Math.sin(H.t*2)*.4,H.z);H.g.rotation.y=H.h;H.g.rotation.x+=((H.mode==='d'?.3:.06)-H.g.rotation.x)*Math.min(1,dt*4);H.rot.rotation.y+=dt*38;H.lm.color.setHex(f?0xff2020:0x300000);
 const dir=new THREE.Vector3(S.x-H.x,-H.g.position.y,S.z-H.z),len=dir.length();H.beam.position.copy(H.g.position);H.beam.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir.normalize());H.beam.scale.set(1,len,1)}
 bustCheck(dt);const ng=W.stars>0?nearestGround():1e9;siren(ng<100?Math.max(0,1-ng/100):0)}
-function cleanup(){clearAll();W.flat=0;W.nx=0;W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
+function cleanup(){clearAll();W.flat=0;W.nx=0;W.arr=0;W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return o.apply(this,arguments)}}
 after('crime',function(a,m,k){window.BPHK=k||'prop';window.BPHK_t=performance.now();if(typeof FXL!=='undefined'){const t=hitTex(hk(window.BPHK));for(const f of FXL)if(f.t<.05&&f.s.material.map!==t){f.s.material.map=t;f.s.material.needsUpdate=true}}addHeat(k||'prop')});after('gameTick',tick);after('hud',hudTick);after('drawMini',mini);before('endTrip',cleanup);
