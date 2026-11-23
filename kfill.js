@@ -69,4 +69,10 @@ const done=[];
 for(const q of(KAP.bu||[]))done.push(build(q[0],q[1],q[3]||''));
 for(const q of(KAP.gt||[]))done.push(build(q[0],q[1],q[2]||''));
 window.KFILL={kinds:done};
+/* ---------- শহরে আরও বাড়ি-দোকান (সড়কের দুই ধারে; বাঁধের আশপাশ বাদ) ---------- */
+{const P=window.BPJ_T.pts(),b=Builder(),dz0=[];for(let i=0;i+1<KAP.dam.length;i+=2)dz0.push([KAP.dam[i],KAP.dam[i+1]]);for(let i=0;i+2<KAP.cr.length;i+=3)dz0.push([KAP.cr[i],KAP.cr[i+1]]);
+const nearDam=(x,z)=>{for(const q of dz0)if(Math.abs(q[0]-x)<170&&Math.abs(q[1]-z)<170)return true;return false};let nb=0;const CAP=420;
+for(const p of P){if(nb>=CAP)break;const x0=p[0],z0=p[1];if(x0<-1500||x0>300||z0<-900||z0>700||nearDam(x0,z0))continue;const ux=p[2],uz=p[3],nx=-uz,nz=ux,rw=p[5]/2,ry=Math.atan2(-uz,ux);
+for(let lu=-34;lu<=34&&nb<CAP;lu+=rr(11,13.5)){for(const s of[1,-1]){const w=rr(6.8,9.4),d=rr(5.6,8),h=pk([rr(3.6,4.6),rr(4.4,6.4),rr(5.8,8.8),rr(7.6,10.8)]),ln=s*(rw+4.2+d/2),cx=x0+ux*lu+nx*ln,cz=z0+uz*lu+nz*ln;if(nearDam(cx,cz)||!okBox(cx,cz,w,d,ry))continue;house(b,cx,cz,ry,w,d,h,rn()<.45,-s);reg(cx,cz,w,d,ry);nb++}}}
+const m=b.mesh();if(m)sc.add(m);window.KFILL.more=nb}
 })();

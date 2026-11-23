@@ -102,7 +102,7 @@ const u={kind,g:m.g,L:m.L,Wd:m.Wd,x:sp.x,z:sp.z,h:sp.h,v:0,stuck:0,dis:0,pref:Ma
 function remove(u){kill(u.g);const i=W.units.indexOf(u);if(i>=0)W.units.splice(i,1)}
 function clearAll(){rbClear();for(const u of W.units.slice())remove(u);if(W.heli){kill(W.heli.g);kill(W.heli.beam);W.heli=null}}
 function antiStuck(dt){if(typeof inp==='undefined'||typeof VEH==='undefined')return;const go=inp.G||inp.V;if(go&&Math.abs(S.vf)<1.2)W.stk=(W.stk||0)+dt;else W.stk=Math.max(0,(W.stk||0)-dt*2);
-if(W.stk>.7){W.stk=0;for(const v of VEH){if(!v.placed)continue;if(Math.hypot(v.px-S.x,v.pz-S.z)<7){v.placed=false;if(v.g)v.g.visible=false}}
+if(W.stk>.7){W.stk=0;for(const v of VEH){if(!v.placed)continue;if(Math.hypot(v.px-S.x,v.pz-S.z)<7){if(v.rare){v.placed=false;if(v.g)v.g.visible=false}else if(typeof placeNear==='function'){if(!placeNear(v,150,330))v.hold=Math.max(v.hold||0,.6)}}}
 for(const u of W.units.concat(W.rbu)){const dx=u.x-S.x,dz=u.z-S.z,d=Math.hypot(dx,dz);if(d<8&&d>.01){u.kx+=dx/d*9;u.kz+=dz/d*9}}}}
 function nearestGround(){let b=1e9;for(const u of W.units){if(u.kind==='boat')continue;const d=dist(u.x,u.z,S.x,S.z);if(d<b)b=d}return b}
 function nearest(){let b=1e9;for(const u of W.units){const d=dist(u.x,u.z,S.x,S.z);if(d<b)b=d}if(W.heli){const d=dist(W.heli.x,W.heli.z,S.x,S.z);if(d<b)b=d}return b}
@@ -117,6 +117,8 @@ if(appr){if(!u.side)u.side=(rx*(-fz)+rz*fx)>=0?1:-1;tx+=-fz*u.side*5.5;tz+=fx*u.
 const turnA=!appr&&u.kind!=='boat'&&ah<2&&(hx*fx+hz*fz)<-.2&&dp<70&&pv>3;
 let tgt=Math.atan2(tx-u.x,-(tz-u.z)),base=('efgh'.indexOf(u.kind)>=0?.86:.92)+.035*W.stars;if(u.kind==='boat')base=.8;
 let sp=T*base;if(appr&&dp<70)sp*=.8;if(turnA)sp=Math.min(sp,7);if(dp>220)sp*=1.5;else if(dp<16)sp=Math.max(pv*1.03,4);for(const o of W.rbu)if(dist(o.x,o.z,u.x,u.z)<11){sp=Math.min(sp,3);break}
+if(u.kind!=='boat'){for(const o of W.units){if(o===u||o.kind==='boat')continue;const ox=o.x-u.x,oz=o.z-u.z;if(ox*ox+oz*oz>625)continue;const f=ox*hx+oz*hz,l=ox*-hz+oz*hx,gp=f-(u.L+o.L)*.5;if(f>0&&Math.abs(l)<(u.Wd+o.Wd)*.5+.7&&gp<4+Math.max(0,u.v)*.5){const ov=Math.max(0,o.v*(hx*Math.sin(o.h)+hz*-Math.cos(o.h)));sp=Math.min(sp,Math.max(0,ov*.9+(gp-1.2)*1.4));if(gp<6)tgt+=(l>0?-1:1)*.3}}
+if(dp>10&&typeof VEH!=='undefined'&&typeof V6!=='undefined')for(const o of VEH){if(!o.placed||!o.init||o.cr)continue;const ox=o.px-u.x,oz=o.pz-u.z;if(ox*ox+oz*oz>400)continue;const f=ox*hx+oz*hz;if(f<=0||f>16)continue;const l=ox*-hz+oz*hx,T2=V6.VT[o.type];if(!T2||Math.abs(l)>(u.Wd+T2.w)*.5+.9)continue;tgt+=(l>0?-1:1)*.28;if(f<8)sp=Math.min(sp,Math.max(5,o.v+3+f*.5));break}}
 const la=Math.max(4,u.v*.7+3);let ok=false;const offs=[0,.5*u.pref,-.5*u.pref,1*u.pref,-1*u.pref,1.6*u.pref,-1.6*u.pref];
 for(const o of offs){const a=tgt+o;if(!blk(u,u.x+Math.sin(a)*la,u.z-Math.cos(a)*la)&&!blk(u,u.x+Math.sin(a)*la*.5,u.z-Math.cos(a)*la*.5)){tgt=a;ok=true;break}}
 if(!ok){sp=0;tgt=u.h+u.pref*1.2}
@@ -140,10 +142,22 @@ if(window.BPD){BPD.hurt(.1+.05*M*kk,into);if(c>5)BPD.sparks((u.x+S.x)/2,.8,(u.z+
 if(typeof crashSnd==='function')crashSnd(Math.min(1,c/13));shake&&shake(kk*(.5+.12*M));if(c>6)toast(M>3?'🚔 শক্ত সাঁজোয়া গাড়ি — ধাক্কা সামলান!':'🚔 পুলিশের গাড়িতে ধাক্কা!',1.2)}}
 function kick(u,dt){if(u.sp){u.h+=u.sp*dt;u.sp*=Math.pow(.04,dt);if(Math.abs(u.sp)<.03)u.sp=0}if(!u.kx&&!u.kz)return;const nx=u.x+u.kx*dt,nz=u.z+u.kz*dt;if(!blk(u,nx,nz)){u.x=nx;u.z=nz}const d=Math.pow(.12,dt);u.kx*=d;u.kz*=d;if(Math.abs(u.kx)+Math.abs(u.kz)<.05)u.kx=u.kz=0}
 function circ(u){const k=u.L*.33,sx=Math.sin(u.h),sz=-Math.cos(u.h);return[[u.x-sx*k,u.z-sz*k],[u.x,u.z],[u.x+sx*k,u.z+sz*k]]}
-function sepAll(){const A=W.units.concat(W.rbu);for(let i=0;i<A.length;i++)for(let j=i+1;j<A.length;j++){const a=A[i],b=A[j];if(a.rb&&b.rb)continue;if((a.kind==='boat')!==(b.kind==='boat'))continue;if(Math.hypot(a.x-b.x,a.z-b.z)>(a.L+b.L)*.5+1.5)continue;
-const ca=circ(a),cb=circ(b),r=(a.Wd+b.Wd)*.5+.1;let px=0,pz=0;
-for(const p of ca)for(const q of cb){let dx=q[0]-p[0],dz=q[1]-p[1],d=Math.hypot(dx,dz);if(d<r){if(d<.01){dx=rnd(-1,1);dz=rnd(-1,1);d=Math.hypot(dx,dz)||1}const k=(r-d)/d;px-=dx*k;pz-=dz*k}}
-if(!px&&!pz)continue;const sa=b.rb?1:(a.rb?0:.5),sb=a.rb?1:(b.rb?0:.5);a.x+=px*.6*sa;a.z+=pz*.6*sa;b.x-=px*.6*sb;b.z-=pz*.6*sb}}
+function obbPen(ax,az,ah,hwa,hla,bx,bz,bh,hwb,hlb){const fa=[Math.sin(ah),-Math.cos(ah)],ra=[-fa[1],fa[0]],fb=[Math.sin(bh),-Math.cos(bh)],rb=[-fb[1],fb[0]],dx=bx-ax,dz=bz-az;let md=1e9,mx=0,mz=0;for(const u of[fa,ra,fb,rb]){const pr=dx*u[0]+dz*u[1],pa=hla*Math.abs(fa[0]*u[0]+fa[1]*u[1])+hwa*Math.abs(ra[0]*u[0]+ra[1]*u[1]),pb=hlb*Math.abs(fb[0]*u[0]+fb[1]*u[1])+hwb*Math.abs(rb[0]*u[0]+rb[1]*u[1]),o=pa+pb-Math.abs(pr);if(o<=0)return null;if(o<md){md=o;const sg=pr>=0?1:-1;mx=u[0]*sg;mz=u[1]*sg}}return[md,mx,mz]}
+function sepAll(){const A=W.units.concat(W.rbu),m=.35;for(let it=0;it<2;it++)for(let i=0;i<A.length;i++)for(let j=i+1;j<A.length;j++){const a=A[i],b=A[j];if(a.rb&&b.rb)continue;if((a.kind==='boat')!==(b.kind==='boat'))continue;if(Math.hypot(a.x-b.x,a.z-b.z)>(a.L+b.L)*.5+2)continue;
+const r=obbPen(a.x,a.z,a.h,a.Wd/2+m,a.L/2+m,b.x,b.z,b.h,b.Wd/2+m,b.L/2+m);if(!r)continue;const d=Math.min(r[0],2.5)+.02,sa=b.rb?1:(a.rb?0:.5),sb=a.rb?1:(b.rb?0:.5);
+a.x-=r[1]*d*sa;a.z-=r[2]*d*sa;b.x+=r[1]*d*sb;b.z+=r[2]*d*sb;
+if(!a.rb&&(Math.sin(a.h)*r[1]-Math.cos(a.h)*r[2])*a.v>0)a.v*=.8;if(!b.rb&&(-Math.sin(b.h)*r[1]+Math.cos(b.h)*r[2])*b.v>0)b.v*=.8}}
+/* police hitting normal traffic: the traffic car is pushed the way the police car was moving (a mild slide, not thrown like a player hit) */
+function copVeh(dt){if(typeof VEH==='undefined'||typeof V6==='undefined')return;const now=performance.now();for(const u of W.units.concat(W.rbu)){if(u.kind==='boat')continue;const mc=u.Wd*u.L*(1+.3*((MASS[u.kind]||2)-1)),R=u.L*.5+8,ufx=Math.sin(u.h),ufz=-Math.cos(u.h);
+for(let vi=0;vi<VEH.length;vi++){const v=VEH[vi];if(!v.placed||!v.init||v.cr)continue;const dx=v.px-u.x,dz=v.pz-u.z;if(dx*dx+dz*dz>R*R)continue;const T=V6.VT[v.type];if(!T)continue;
+const vfx=Math.sin(v.hd),vfz=-Math.cos(v.hd),f=-(dx*vfx+dz*vfz),l=-(dx*-vfz+dz*vfx);if(f>0&&f<(T.l+u.L)*.5+2.5+v.v*.8&&Math.abs(l)<(T.w+u.Wd)*.5+.4)v.hold=Math.max(v.hold||0,.35);
+const r=obbPen(u.x,u.z,u.h,u.Wd/2+.1,u.L/2+.15,v.px,v.pz,v.hd,T.w/2+.1,T.l/2+.15);if(!r)continue;
+const mv=T.w*T.l,sv=u.rb?1:Math.max(.3,Math.min(.9,mc/(mc+mv))),d=Math.min(r[0],2)+.02;v.px+=r[1]*d*sv;v.pz+=r[2]*d*sv;if(!u.rb){u.x-=r[1]*d*(1-sv);u.z-=r[2]*d*(1-sv)}
+const cx=ufx*u.v+u.kx-vfx*v.v,cz=ufz*u.v+u.kz-vfz*v.v,c=Math.max(0,cx*r[1]+cz*r[2]);if(c<1.6||(v.chT!==undefined&&now-v.chT<700))continue;v.chT=now;
+v.hold=Math.max(v.hold||0,.8);v.v*=.3;
+if(c>4.5){const heavy=mv>12;v.cr={vx:r[1]*c*.55+ufx*u.v*.25,vz:r[2]*c*.55+ufz*u.v*.25,vy:Math.min(2.6,.4+c*.1),sp:(Math.random()<.5?-1:1)*(.4+c*.05),rl:heavy?0:(Math.random()<.5?-1:1)*(.3+c*.03),t:0}}
+if(!u.rb){u.v*=1-.25*Math.min(1,c/12);u.kx-=r[1]*c*.1*(1-sv);u.kz-=r[2]*c*.1*(1-sv)}
+const pd=dist(v.px,v.pz,S.x,S.z);if(pd<45&&typeof crashSnd==='function')crashSnd(Math.min(.8,c/12)*(1-pd/45))}}}
 /* ---------- রোডব্লক ও স্পাইক ---------- */
 function rbClear(){for(const u of W.rbu)kill(u.g);for(const q of W.rbs)kill(q.g);W.rbu=[];W.rbs=[];W.rbp=null}
 function roadblock(){const k=W.stars>=5?['f','g','h']:W.stars>=4?['d','d','e']:['c','c'],sp=spawnPt(120,210,false,true);if(!sp||!sp.w)return false;
@@ -304,7 +318,7 @@ const f=Math.floor(performance.now()/170)%2;
 const fl=u=>{const d=u.g.userData;if(d.lm){d.lm.color.setHex(f?0xff2020:0x300000);d.bm.color.setHex(f?0x101040:0x2a50ff)}};
 for(const u of W.units){if(W.stars>0||u.dis>0)moveUnit(u,dt);else{u.v*=.9}kick(u,dt);contact(u,dt);fl(u)}
 for(const u of W.rbu){kick(u,dt);contact(u,dt);u.g.position.set(u.x,0,u.z);u.g.rotation.y=-u.h;fl(u)}
-sepAll();rbTick(dt);
+sepAll();copVeh(dt);rbTick(dt);
 const H=W.heli;if(H){H.t+=dt;H.cd-=dt;let ty=28,k=Math.min(1,dt*1.1),tx,tz;const sx=Math.sin(S.h),sz=-Math.cos(S.h);
 if(H.mode==='o'&&H.cd<=0&&!G.over){H.mode='d';H.dt=0;H.hit=0;toast('🚁 হেলিকপ্টার ঝাঁপ দিচ্ছে — সরুন!',2.2)}
 if(H.mode==='d'){H.dt+=dt;ty=3.4;k=Math.min(1,dt*2.4);tx=S.x+sx*S.vf*.45;tz=S.z+sz*S.vf*.45;
