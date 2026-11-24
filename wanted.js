@@ -295,6 +295,13 @@ if(t>=1.4&&!z.fn){z.fn=1;z.el.classList.add('fn')}
 if(t>=1.5){const b=q('.bf2 b');if(b)b.textContent=money(z.fine*ez((t-1.5)/1.2))}
 if(t>4.35)q('.bk2').style.opacity=Math.min(1,(t-4.35)/.65);
 if(t>=5)bzFinish()};
+/* camera never ends up inside a police/traffic car: it rises over the roof (GTA/NFS style) */
+window.BPCAMY=0;
+window.BPCAMCLR=function(dt){if(BZ&&!BZ.done){window.BPCAMY=0;return}const px=cam.position.x,pz=cam.position.z,py=(typeof ELV!=='undefined'?ELV.y:0)+(typeof PV!=='undefined'?PV.ch*.6:1.9)+Math.abs(S.vf)*.01;let need=-1e9;
+const t=(x,z,h,L,Wd,hd)=>{const dx=px-x,dz=pz-z;if(dx*dx+dz*dz>144)return;const fx=Math.sin(hd),fz=-Math.cos(hd),lf=dx*fx+dz*fz,lr=-dx*fz+dz*fx;if(Math.abs(lf)<L/2+1.2&&Math.abs(lr)<Wd/2+1.2)need=Math.max(need,h+1.1-py)};
+for(const u of W.units)if(u.kind!=='boat')t(u.x,u.z,(DIM[u.kind]||[0,0,2.4])[2],u.L,u.Wd,u.h);
+if(typeof VEH!=='undefined'&&typeof V6!=='undefined')for(const v of VEH){if(!v.placed||!v.init)continue;const T=V6.VT[v.type];if(T)t(v.px,v.pz,T.l>7?3.3:T.l>4.6?2:1.8,T.l,T.w,v.hd)}
+const goal=need>-1e8?Math.max(0,Math.min(4.5,need)):0;window.BPCAMY+=(goal-window.BPCAMY)*Math.min(1,(goal>window.BPCAMY?16:1.6)*dt)};
 const BT=[0,16,16,15,14,14];
 function bustCheck(dt){if(W.stars<=0){W.bust=0;return}let n=0;for(const u of W.units)if(u.kind!=='boat'&&u.dis<=0&&dist(u.x,u.z,S.x,S.z)<8.5)n++;
 const nd=W.stars>=3?2:1,v=Math.abs(S.vf),T=BT[W.stars]||4;
