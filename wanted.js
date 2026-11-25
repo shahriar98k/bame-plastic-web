@@ -267,7 +267,7 @@ gu.forEach((u,i)=>{u.dis=0;u.spin=0;u.kx=u.kz=0;u.v=0;const an=a0+i*6.283/n;let 
 for(const k of[1,.82,.66]){const x=S.x+Math.cos(an)*R*k,z=S.z+Math.sin(an)*R*k;if(!(typeof hit==='function'&&hit(x,z))){tx=x;tz=z;break}}
 ents.push({u,x0:u.x,z0:u.z,h0:u.h,tx,tz,th:Math.atan2(S.x-tx,-(S.z-tz))+(i%2?.22:-.22)})});
 BZ={t:0,el,q:s=>el.querySelector(s),ents,ey,cy:cam.position.y,a0:Math.atan2(cz,cx),r0:Math.hypot(cx,cz)||12,fov0:cam.fov,fine,w,done:0,on:0,ti:0,fn:0};
-try{shake(1.1);if(typeof crashSnd==='function')crashSnd(1);sfxPlay(['pakad'],1)}catch(e){}
+try{shake(1.1);if(typeof crashSnd==='function')crashSnd(1);sfxPlay(['pakad'],2)}catch(e){}
 }
 function bzEnd(){const z=BZ;if(!z)return;BZ=null;try{z.el.remove()}catch(e){}document.body.classList.remove('bpb')}
 function bzFinish(){const z=BZ;if(!z||z.done)return;z.done=1;W.bust=0;W.stars=0;W.ped=W.cop=W.dec=0;
@@ -302,13 +302,21 @@ const t=(x,z,h,L,Wd,hd)=>{const dx=px-x,dz=pz-z;if(dx*dx+dz*dz>144)return;const 
 for(const u of W.units)if(u.kind!=='boat')t(u.x,u.z,(DIM[u.kind]||[0,0,2.4])[2],u.L,u.Wd,u.h);
 if(typeof VEH!=='undefined'&&typeof V6!=='undefined')for(const v of VEH){if(!v.placed||!v.init)continue;const T=V6.VT[v.type];if(T)t(v.px,v.pz,T.l>7?3.3:T.l>4.6?2:1.8,T.l,T.w,v.hd)}
 const goal=need>-1e8?Math.max(0,Math.min(4.5,need)):0;window.BPCAMY+=(goal-window.BPCAMY)*Math.min(1,(goal>window.BPCAMY?16:1.6)*dt)};
+/* police shout "পাকড়াও" now and then while chasing, with an on-screen call-out */
+let shT=8,shEl=null;
+const SHCSS='#bpsh{position:fixed;left:50%;top:14%;transform:translate(-50%,-16px) scale(.96);z-index:30;pointer-events:none;opacity:0;transition:opacity .2s,transform .28s cubic-bezier(.2,1.4,.4,1);display:flex;align-items:center;gap:11px;padding:8px 18px 10px 9px;border-radius:14px;background:linear-gradient(90deg,rgba(10,16,42,.9),rgba(26,10,12,.9));border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:"Hind Siliguri",sans-serif;color:#fff;overflow:hidden}#bpsh.on{opacity:1;transform:translate(-50%,0) scale(1);animation:bpshGl .36s steps(2) infinite}#bpsh i{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-style:normal;font-size:21px;background:linear-gradient(135deg,#d6252b 0 50%,#2a6bff 50% 100%)}#bpsh small{display:block;font-size:11px;letter-spacing:.14em;color:#9fb4ff;font-weight:600}#bpsh b{font-size:20px;font-weight:700;letter-spacing:.02em}#bpsh:after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;background:linear-gradient(90deg,#ff2a3a,#2a6bff);transform-origin:left;animation:bpshBar 2.4s linear forwards}@keyframes bpshBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}@keyframes bpshGl{0%{box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 0 2px rgba(255,42,58,.55)}100%{box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 0 2px rgba(42,107,255,.55)}}body.bpb #bpsh{display:none}';
+function shout(dt){if(W.stars<=0){shT=Math.max(shT,6);return}shT-=dt;if(shT>0)return;shT=rnd(7,13);let nd=1e9;for(const u of W.units)if(u.kind!=='boat'){const d=dist(u.x,u.z,S.x,S.z);if(d<nd)nd=d}if(nd>85)return;
+try{sfxPlay(['pakad'])}catch(e){}
+if(!shEl){const st=document.createElement('style');st.textContent=SHCSS;document.head.appendChild(st);shEl=document.createElement('div');shEl.id='bpsh';document.body.appendChild(shEl)}
+const L=['পাকড়াও ওকে!','পাকড়াও ওকে!','ধরো! পালাতে দিয়ো না!','থামাও গাড়িটা!','ঘিরে ফেলো ওকে!'];shEl.innerHTML='<i>🚓</i><div><small>পুলিশ রেডিও · '+nm()+'</small><b>“'+L[Math.floor(Math.random()*L.length)]+'”</b></div>';
+shEl.classList.remove('on');void shEl.offsetWidth;shEl.classList.add('on');clearTimeout(shEl._t);shEl._t=setTimeout(()=>shEl.classList.remove('on'),2400)}
 const BT=[0,16,16,15,14,14];
 function bustCheck(dt){if(W.stars<=0){W.bust=0;return}let n=0;for(const u of W.units)if(u.kind!=='boat'&&u.dis<=0&&dist(u.x,u.z,S.x,S.z)<8.5)n++;
 const nd=W.stars>=3?2:1,v=Math.abs(S.vf),T=BT[W.stars]||4;
 if(n>=nd&&v<2)W.bust+=dt*Math.min(1.4,1+.1*(n-nd));else if(n>=nd&&v<4){}else W.bust=Math.max(0,W.bust-dt*(v>6?3:1.5));
 if(W.bust>=T&&!BZ){const fine=100000*W.stars,w=LV[W.stars],stars=W.stars;G.loss+=fine;W.bust=0;
 try{startBust(G.loss,w,stars)}catch(e){console.error(e);bzEnd();W.stars=0;W.ped=W.cop=W.dec=0;try{endTrip('পুলিশের হাতে ধরা পড়লেন — '+w)}catch(x){console.error(x)}}}}
-function tick(dt){if(!G.started||G.over){siren(0);return}if(W.stars>0&&typeof MOB!=='undefined'&&MOB>0)MOB=.001;
+function tick(dt){if(!G.started||G.over){siren(0);return}if(W.stars>0&&typeof MOB!=='undefined'&&MOB>0)MOB=.001;shout(dt);
 W.tk+=dt;garTick(dt);antiStuck(dt);const kmh=Math.abs(S.vf)*3.6;
 if(kmh>110){W.sp+=dt;if(W.sp>6){W.sp=-14;addHeat('speed');if(W.stars>0)toast('📸 অতিরিক্ত গতি — পুলিশ নজর রাখছে',2)}}else if(W.sp>0&&kmh<95)W.sp=Math.max(0,W.sp-dt);
 W.cc+=dt;

@@ -7,6 +7,12 @@ const BNW={road:'রোড',rd:'রোড',avenue:'এভিনিউ',ave:'এ�
 function bnName(n){if(!n||/[\u0980-\u09FF]/.test(n))return n;const t=n.trim();if(BNP[t])return BNP[t];const dg=x=>x.replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);const out=t.replace(/[A-Za-z]+(?:[-'][A-Za-z]+)*|\d+/g,w=>{if(/^\d+$/.test(w))return dg(w);const k=w.toLowerCase();if(BNW[k]!==undefined)return BNW[k];if(k.indexOf('-')>0){return k.split('-').map(z=>BNW[z]!==undefined?BNW[z]:z.charAt(0).toUpperCase()+z.slice(1)).join('-')}return w});return out.replace(/\s+/g,' ').trim()}
 if(window.__PK)PK=window.__PK;if(!PK&&EP)PK=EP;
 if(PK){D.x=PK.r||[];if(PK.m&&PK.m.length&&PK.m[0].length>20)D.m=PK.m;if(PK.s&&PK.s.length)D.s=PK.s}
+/* landmark sites (Sangsad, Baitul Mukarram, Bangabandhu stadium, Sher-e-Bangla stadium): clear old data, add Manik Mia Avenue under the metro */
+function bpExc(x,z){const L=window.BPEXC;if(!L)return false;for(const r of L)if(x>r[0]&&x<r[1]&&z>r[2]&&z<r[3])return true;return false}
+if(!(window.BPMAP==='k'&&window.KAP)&&PK){window.BPEXC=[[-2745,-2230,-3590,-3095],[150,300,275,378],[180,440,372,580],[-4170,-3855,-8600,-8340]];
+const cen=p=>{let a=0,b=0;const n=p.length/2;for(let i=0;i<p.length;i+=2){a+=p[i];b+=p[i+1]}return[a/n,b/n]},allIn=r=>{const p=r[1];for(let i=0;i<p.length;i+=2)if(!bpExc(p[i],p[i+1]))return false;return true};
+D.b=D.b.filter(b=>{const c=cen(b[2]);return!bpExc(c[0],c[1])});D.r=D.r.filter(r=>!allIn(r));D.x=D.x.filter(r=>!allIn(r));
+if(D.m&&D.m[0]){const m=D.m[0],ix=q=>{let bi=0,bd=1e18;for(let i=0;i<m.length;i+=2){const d=(m[i]-q[0])**2+(m[i+1]-q[1])**2;if(d<bd){bd=d;bi=i}}return bi};let a=ix([-2792.5,-3747.8]),b=ix([-2383.5,-2934.6]);if(a>b){const t=a;a=b;b=t}if(b-a>=4)D.x.push([16,m.slice(a,b+2),'মানিক মিয়া এভিনিউ'])}}
 /* Kaptai map: replaces the Dhaka data before anything is built */
 if(window.BPMAP==='k'&&window.KAP){window.KMODE=1;D.r.length=0;D.b.length=0;for(const r of KAP.r)D.r.push(r);for(const b0 of KAP.b){let b=b0;const q=b[2];let a=0;for(let i=0;i<q.length;i+=2){const j=(i+2)%q.length;a+=q[i]*q[j+1]-q[j]*q[i+1]}if(a<0){const r=[];for(let i=q.length-2;i>=0;i-=2)r.push(q[i],q[i+1]);b=[b[0],b[1],r]}D.b.push(b)}D.m=[];D.s=[];D.x=[]}
 for(const r of D.r)if(r[2])r[2]=bnName(r[2]);for(const r of(D.x||[]))if(r[2])r[2]=bnName(r[2]);
@@ -476,29 +482,33 @@ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32Bu
 sc.add(new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide})));
 {/* ঢাকা মেট্রো স্টেশন: ইটের লাল দেয়াল + কংক্রিটের ফ্রেম + সবুজ বাঁকা ছাদ + দুই ভাষার সাইনবোর্ড (সব স্টেশন একই নকশা) */
 const EN={'পল্লবী':'Pallabi','শাহবাগ':'Shahbag','মতিঝিল':'Motijheel','ফার্মগেট':'Farmgate','আগারগাঁও':'Agargaon','কাজীপাড়া':'Kazipara','মিরপুর ১০':'Mirpur 10','মিরপুর ১১':'Mirpur 11','বিজয় সরণি':'Bijoy Sarani','শেওড়াপাড়া':'Shewrapara','উত্তরা মধ্য':'Uttara Center','উত্তরা উত্তর':'Uttara North','উত্তরা দক্ষিণ':'Uttara South','কারওয়ান বাজার':'Karwan Bazar','বাংলাদেশ সচিবালয়':'Bangladesh Secretariat','ঢাকা বিশ্ববিদ্যালয়':'Dhaka University'};
-const BR=[.70,.33,.22],CC=[.70,.70,.68],GL=[.17,.22,.27],GR=[.12,.74,.52],RD=[.78,.12,.14],YL=[.96,.8,.1],TR=[.25,.25,.28];
+const BR=[.66,.31,.23],CC=[.72,.71,.67],CC2=[.78,.77,.73],ST=[.80,.55,.39],GR=[.18,.60,.40],GRT=[.12,.48,.32],YL=[.96,.8,.1],TR=[.25,.25,.28];
 const sp2=[],sc2=[];
-function boardTex(bn,en){const cv=document.createElement('canvas');cv.width=1024;cv.height=160;const t=new THREE.CanvasTexture(cv);
-const fit=(c,s,x,w,wt)=>{let fs=84;c.font=wt+' '+fs+'px "Hind Siliguri","Segoe UI",Arial,sans-serif';while(c.measureText(s).width>w&&fs>30){fs-=3;c.font=wt+' '+fs+'px "Hind Siliguri","Segoe UI",Arial,sans-serif'}c.fillText(s,x,84)};
-const draw=()=>{const c=cv.getContext('2d');c.fillStyle='#f3f3ef';c.fillRect(0,0,1024,160);c.fillStyle='#d4d4cf';c.fillRect(0,150,1024,10);
-c.lineWidth=11;c.strokeStyle='#d6252b';c.beginPath();c.arc(512,108,62,Math.PI*1.06,Math.PI*1.94);c.stroke();
-c.fillStyle='#1b9a5b';c.beginPath();if(c.roundRect)c.roundRect(470,76,84,40,13);else c.rect(470,76,84,40);c.fill();c.fillStyle='#fff';c.fillRect(482,84,22,13);c.fillRect(520,84,22,13);c.fillStyle='#d6252b';c.fillRect(470,110,84,6);
-c.fillStyle='#3b3b39';c.textBaseline='middle';c.textAlign='center';fit(c,bn,262,420,'700');fit(c,en,762,420,'600');t.needsUpdate=true};
+function boardTex(bn,en){const cv=document.createElement('canvas');cv.width=1024;cv.height=218;const t=new THREE.CanvasTexture(cv);
+const fit=(c,s,x,y,w,fam,wt)=>{let fs=92;c.font=wt+' '+fs+'px '+fam;while(c.measureText(s).width>w&&fs>34){fs-=3;c.font=wt+' '+fs+'px '+fam}c.shadowColor='rgba(0,0,0,.30)';c.shadowBlur=4;c.shadowOffsetX=3;c.shadowOffsetY=4;c.fillStyle='#46484a';c.fillText(s,x,y);c.shadowColor='transparent'};
+const draw=()=>{const c=cv.getContext('2d'),g=c.createLinearGradient(0,0,0,218);g.addColorStop(0,'#eceeeb');g.addColorStop(1,'#d4d7d3');c.fillStyle=g;c.fillRect(0,0,1024,218);c.fillStyle='#f8f9f7';c.fillRect(0,0,1024,5);c.fillStyle='#bfc2be';c.fillRect(0,213,1024,5);
+c.fillStyle='#fff';c.beginPath();if(c.roundRect)c.roundRect(424,112,176,86,24);else c.rect(424,112,176,86);c.fill();
+c.lineWidth=17;const rg=c.createLinearGradient(420,0,610,0);rg.addColorStop(0,'#e5362b');rg.addColorStop(1,'#c8191f');c.strokeStyle=rg;c.beginPath();c.arc(512,142,84,Math.PI*1.03,Math.PI*1.97);c.stroke();
+c.fillStyle='#1d8c58';c.beginPath();c.moveTo(440,170);c.quadraticCurveTo(446,138,486,132);c.lineTo(556,136);c.lineTo(582,148);c.lineTo(556,158);c.lineTo(446,172);c.closePath();c.fill();
+c.fillStyle='#fff';c.beginPath();c.moveTo(462,146);c.lineTo(492,140);c.lineTo(492,152);c.lineTo(458,158);c.closePath();c.fill();
+c.strokeStyle='#1d8c58';c.lineWidth=5;c.beginPath();c.moveTo(446,182);c.lineTo(588,166);c.stroke();c.strokeStyle='#0f6b43';c.lineWidth=4;c.beginPath();c.moveTo(452,190);c.lineTo(598,174);c.stroke();
+c.fillStyle='#d6252b';c.font='italic 700 36px Arial,sans-serif';c.textAlign='center';c.fillText('M',566,190);
+c.textAlign='center';c.textBaseline='middle';fit(c,bn,262,122,370,'"Hind Siliguri","Noto Sans Bengali","Segoe UI",sans-serif','700');fit(c,en,772,122,380,'"Trebuchet MS","Segoe UI",Verdana,Arial,sans-serif','700');t.needsUpdate=true};
 draw();if(document.fonts&&document.fonts.load){document.fonts.load('700 60px "Hind Siliguri"').then(draw).catch(()=>{})}return t}
 for(const[x,z,name]of D.s){
 let b=1e9,X=x,Z=z,ang=0;for(let i=0;i+3<MW.length;i+=2){const dx=MW[i+2]-MW[i],dz=MW[i+3]-MW[i+1],L=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((x-MW[i])*dx+(z-MW[i+1])*dz)/L)),qx=MW[i]+t*dx,qz=MW[i+1]+t*dz,d=Math.hypot(x-qx,z-qz);if(d<b){b=d;X=qx;Z=qz;ang=Math.atan2(dz,dx)}}
 const ca=Math.cos(ang),sa=Math.sin(ang),W3=(lx,lz)=>[X+lx*ca-lz*sa,Z+lx*sa+lz*ca];
 const FC=[[0,1,5,4],[2,3,7,6],[0,1,3,2],[4,5,7,6],[0,2,6,4],[1,3,7,5]];
 const bx3=(lx,ly,lz,sx,sy,sz,k)=>{const V=[];for(const a of[-1,1])for(const b2 of[-1,1])for(const c of[-1,1]){const p=W3(lx+a*sx/2,lz+c*sz/2);V.push([p[0],ly+b2*sy/2,p[1]])}for(const f of FC)for(const tr of[[0,1,2],[0,2,3]])for(const i of tr){sp2.push(V[f[i]][0],V[f[i]][1],V[f[i]][2]);sc2.push(k[0],k[1],k[2])}};
-const LEN=132,y0=H+7.9,rise=3.4,hw=11.8,NS=14;
+const LEN=132,y0=H+9.3,rise=3.0,hw=11.8,NS=14;
 bx3(0,H-.65,0,LEN,1.5,19.6,CC);bx3(0,H+.14,0,LEN,.05,3.2,TR);for(const s of[-1,1]){bx3(0,H+.2,s*.8,LEN,.1,.2,[.55,.55,.58]);bx3(0,H+.16,s*2.3,LEN,.03,.3,YL)}
-for(const s of[-1,1]){for(let i=0;i<=10;i++){const lx=-66+i*13.2;bx3(lx,H+3.7,s*9,1.3,7.4,1.3,CC);if(i<10)bx3(lx+6.6,H+2.0,s*9,11.6,4.0,.7,BR)}
-bx3(0,H+5.7,s*9,LEN,3.0,.5,GL);bx3(0,H+4.1,s*9,LEN,.55,1.0,CC);bx3(0,H+7.55,s*9,LEN,.9,1.3,CC);bx3(0,y0+.05,s*hw,LEN+4,.4,.5,RD);bx3(0,H-3.1,s*10.1,24,3.8,.5,CC)}
-for(const e of[-1,1])bx3(e*66,H+7.55,0,1.3,.9,19,CC);
+for(const s of[-1,1]){for(let i=0;i<=10;i++){const lx=-66+i*13.2;bx3(lx,H+3.6,s*9,1.4,7.2,1.4,CC);if(i<10){const cx=lx+6.6;bx3(cx,H+3.1,s*9,11.6,6.2,.7,BR);for(const yy of[2.25,4.35])bx3(cx,H+yy,s*9.38,11.6,.32,.1,ST)}}
+bx3(0,H+7.1,s*9,LEN,.6,1.5,CC2);bx3(0,H+8.0,s*8.6,LEN,1.7,.7,BR);bx3(0,H+9.0,s*8.6,LEN,.3,1.0,CC2);bx3(0,y0+.05,s*hw,LEN+4,.4,.5,GRT);bx3(0,H-3.4,s*10.1,26,5.4,.5,CC2)}
+for(const e of[-1,1])bx3(e*66,H+7.1,0,1.3,.6,19,CC2);
 for(let j=0;j<NS;j++){const u0=-1+2*j/NS,u1=-1+2*(j+1)/NS,k=GR.map(v=>v*(.9+.1*(j%2))),P=[];for(const[u,lx]of[[u0,-68],[u0,68],[u1,-68],[u1,68]]){const p=W3(lx,u*hw);P.push([p[0],y0+rise*(1-u*u),p[1]])}for(const i of[0,1,2,2,1,3]){sp2.push(P[i][0],P[i][1],P[i][2]);sc2.push(k[0],k[1],k[2])}}
 bx3(0,y0+rise+.2,0,126,.3,2.2,[.55,.9,.8]);
 const tx=boardTex(name,EN[name]||name),mat=new THREE.MeshBasicMaterial({map:tx}),put=(lx,ly,lz,w,h,rot)=>{const p=W3(lx,lz),m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);m.position.set(p[0],ly,p[1]);m.rotation.y=-ang+rot;sc.add(m)};
-put(0,H-3.1,10.4,21.8,3.4,0);put(0,H-3.1,-10.4,21.8,3.4,Math.PI);put(67.4,H+6.2,0,14,2.2,Math.PI/2);put(-67.4,H+6.2,0,14,2.2,-Math.PI/2)}
+put(0,H-3.4,10.4,24,5.1,0);put(0,H-3.4,-10.4,24,5.1,Math.PI);put(67.4,H+4.2,0,15,3.2,Math.PI/2);put(-67.4,H+4.2,0,15,3.2,-Math.PI/2)}
 if(sp2.length){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(sp2,3));g.setAttribute('color',new THREE.Float32BufferAttribute(sc2,3));g.computeVertexNormals();sc.add(new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide})))}}}
 function inPoly(x,z,p){let c=false;for(let i=0,j=p.length-2;i<p.length;j=i,i+=2){if((p[i+1]>z)!==(p[j+1]>z)&&x<(p[j]-p[i])*(z-p[i+1])/(p[j+1]-p[i+1])+p[i])c=!c}return c}
 let HG=null,HGS='';function hgDirty(){HGS=''}
@@ -1161,8 +1171,7 @@ o.rotation.x=c.a}}
 function npcContact(v){if(v.cr||!v.init||!G.started||G.over)return;const T=V6.VT[v.type],big=!!BIGV[v.type],mw=T.w*T.l,fxn=Math.sin(v.hd),fzn=-Math.cos(v.hd),rn=T.w*.55+.05,Ln=T.l*.32,sh=Math.sin(S.h),ch=Math.cos(S.h);let best=null;
 for(const o of[-PV.ol,-PV.ol/2,0,PV.ol/2,PV.ol]){const px=S.x+sh*o,pz=S.z-ch*o;for(const q of[-Ln,0,Ln]){const cx=v.px+fxn*q,cz=v.pz+fzn*q,dx=px-cx,dz=pz-cz,d=Math.hypot(dx,dz),pen=PV.hw+.05+rn-d;if(pen>0&&(!best||pen>best.pen))best={pen,nx:dx/(d||1),nz:dz/(d||1)}}}
 if(!best)return;
-if(big&&PKIND!=='bus'){S.x+=best.nx*best.pen;S.z+=best.nz*best.pen;if(!G.over){G.over=1;S.vf=0;fx(S.x,2,S.z);shake(1.2);crashSnd(1);toast('💀 '+T.n+'-এর সাথে ধাক্কা — গাড়ি চুরমার!',3);setTimeout(()=>endTrip('বড় গাড়ির সাথে ধাক্কায় খেলা শেষ'),1100)}return}
-if(big||PV.mass<mw*.8){S.x+=best.nx*(best.pen+.02);S.z+=best.nz*(best.pen+.02);const sg=Math.sign(S.vf||1),inw=(best.nx*Math.sin(S.h)-best.nz*Math.cos(S.h))*sg,spIn=Math.abs(S.vf);if(inw<0){S.vf*=.35}v.hold=.5;if(hitCd<=0){hitCd=.8;const sp=Math.abs(S.vf);if(inw<0&&spIn>=2.5&&v.g.userData.rdr&&!v.rd)riderHit(v,spIn);if(sp>1.5){vehSnd();crime(CRK[v.type]*.3,'💥 '+T.n+'-এ ধাক্কা!','veh');fx(v.px,2,v.pz);shake(Math.min(.8,sp/14));crashSnd(.5)}}return}
+const sg0=Math.sign(S.vf||1),inw0=(best.nx*Math.sin(S.h)-best.nz*Math.cos(S.h))*sg0,bigHit=big&&inw0<0&&Math.abs(S.vf)>=7;if(!bigHit&&(big||PV.mass<mw*.8)){S.x+=best.nx*(best.pen+.02);S.z+=best.nz*(best.pen+.02);const sg=Math.sign(S.vf||1),inw=(best.nx*Math.sin(S.h)-best.nz*Math.cos(S.h))*sg,spIn=Math.abs(S.vf);if(inw<0){S.vf*=.35}v.hold=.5;if(hitCd<=0){hitCd=.8;const sp=Math.abs(S.vf);if(inw<0&&spIn>=2.5&&v.g.userData.rdr&&!v.rd)riderHit(v,spIn);if(sp>1.5){vehSnd();crime(CRK[v.type]*.3,'💥 '+T.n+'-এ ধাক্কা!','veh');fx(v.px,2,v.pz);shake(Math.min(.8,sp/14));crashSnd(.5)}}return}
 if(hitCd<=0){const am=CRK[v.type]*(.5+Math.min(1.5,Math.abs(S.vf)/12));vehCrash(v);hitCd=.6;vehSnd();crime(am,'💥 '+T.n+'-এ ধাক্কা!','veh')}}
 function vehCrash(v){const T=V6.VT[v.type],mw=T.w*T.l,k=PV.mass/(PV.mass+mw),sg=Math.sign(S.vf||1),sp=Math.max(3,Math.abs(S.vf)),hx=Math.sin(S.h)*sg,hz=-Math.cos(S.h)*sg,dx=v.px-S.x,dz=v.pz-S.z,dl=Math.hypot(dx,dz)||1,heavy=mw>12;
 v.cr={vx:hx*sp*k*1.6+dx/dl*sp*.35,vz:hz*sp*k*1.6+dz/dl*sp*.35,vy:Math.min(11,3+sp*.5*k*2),sp:(Math.random()<.5?-1:1)*(2+sp*.45*k),rl:heavy?0:(Math.random()<.5?-1:1)*(1.5+sp*.15*k),t:0};
@@ -1221,7 +1230,7 @@ function perimBad(cr,th){for(let e=0;e<4;e++){const a=cr[e],b=cr[(e+1)%4];for(co
 let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;for(const r of D.r)for(let i=0;i<r[1].length;i+=2){if(window.KMODE&&(Math.abs(r[1][i])>3600||Math.abs(r[1][i+1])>3200))continue;a0=Math.min(a0,r[1][i]);a1=Math.max(a1,r[1][i]);b0=Math.min(b0,r[1][i+1]);b1=Math.max(b1,r[1][i+1])}
 if(window.KMODE){a0=-1500;a1=300;b0=-900;b1=700}const hs=new Map(),hc=40,bbs=[];BB.forEach((b,bi)=>{for(let a=Math.floor(b.x0/hc);a<=Math.floor(b.x1/hc);a++)for(let c=Math.floor(b.z0/hc);c<=Math.floor(b.z1/hc);c++){const k=a+','+c;let l=hs.get(k);if(!l){l=[];hs.set(k,l)}l.push(bi)}});
 const hOf=bi=>D.b[bi]?D.b[bi][0]:10;let sd=2024;const rr=()=>(sd=(sd*16807)%2147483647)/2147483647;const A={bp:[],bc:[],bu:[],bn:[]};let nf=0;
-const KC=window.KMODE?kRowCands(rr):null;let kgi=0,kgx=a0-30,kgz=b0-30;for(;KC?kgi<KC.length:kgx<a1+30;){let x,z,kw=null;if(KC){kw=KC[kgi++];x=kw[0];z=kw[1]}else{x=kgx+rr()*11;z=kgz+rr()*11;kgz+=11;if(kgz>=b1+30){kgz=b0-30;kgx+=11}if(rr()<.02)continue}const q=nrt(x,z);if(!KC&&q[0]>210)continue;const hw=kw?kw[2]:3.3+rr()*3.3,hd=kw?kw[3]:3.3+rr()*3.3,rad=Math.hypot(hw,hd);if(q[0]<rad+.6)continue;
+const KC=window.KMODE?kRowCands(rr):null;let kgi=0,kgx=a0-30,kgz=b0-30;for(;KC?kgi<KC.length:kgx<a1+30;){let x,z,kw=null;if(KC){kw=KC[kgi++];x=kw[0];z=kw[1]}else{x=kgx+rr()*11;z=kgz+rr()*11;kgz+=11;if(kgz>=b1+30){kgz=b0-30;kgx+=11}if(rr()<.02||bpExc(x,z))continue}const q=nrt(x,z);if(!KC&&q[0]>210)continue;const hw=kw?kw[2]:3.3+rr()*3.3,hd=kw?kw[3]:3.3+rr()*3.3,rad=Math.hypot(hw,hd);if(q[0]<rad+.6)continue;
 const tx=q[1],tz=q[2],nx=-tz,nz=tx,cr=[[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(m=>[x+tx*m[0]+nx*m[1],z+tz*m[0]+nz*m[1]]);if(cr.some(m=>nrt(m[0],m[1])[0]<.8)||perimBad(cr,.5))continue;
 const xs=cr.map(m=>m[0]),zs=cr.map(m=>m[1]),X0=Math.min(...xs)-1.2,X1=Math.max(...xs)+1.2,Z0=Math.min(...zs)-1.2,Z1=Math.max(...zs)+1.2;let bad=false,hsum=0,hn=0;
 for(let a=Math.floor((X0-25)/hc);a<=Math.floor((X1+25)/hc)&&!bad;a++)for(let c=Math.floor((Z0-25)/hc);c<=Math.floor((Z1+25)/hc)&&!bad;c++){const l=hs.get(a+','+c);if(!l)continue;for(const bi of l){const b=BB[bi];if(b.x1>X0&&b.x0<X1&&b.z1>Z0&&b.z0<Z1&&(!KC||kPolyHit(cr.flat(),b.p))){bad=true;break}if(Math.abs((b.x0+b.x1)/2-x)<35&&Math.abs((b.z0+b.z1)/2-z)<35){hsum+=hOf(bi);hn++}}}
@@ -1515,7 +1524,7 @@ function animKick(g,t){const u=g.userData;if(!u.lL)return;u.k+=(0-u.k)*.2;const 
 /* where a mob member stands: right next to the rider (open vehicles) or around the body of a bus / car / CNG */
 function mobSpot(w){const a=w.ci*2.4+.5,c=Math.cos(a),s=Math.sin(a),en=ENCL[PKIND],hw=PV.hw+(en?.9:.5),hl=(en?PV.ol:Math.min(PV.ol,.9))+(en?.9:.5),k=1/Math.max(Math.abs(c)/hw,Math.abs(s)/hl),lx=c*k,lz=s*k,fx=Math.sin(S.h),fz=-Math.cos(S.h),rx=Math.cos(S.h),rz=Math.sin(S.h);return[S.x+rx*lx+fx*lz,S.z+rz*lx+fz*lz]}
 function seesMe(w){const x0=w.g.position.x,z0=w.g.position.z,dx=S.x-x0,dz=S.z-z0,d=Math.hypot(dx,dz),n=Math.max(2,Math.ceil(d/3));for(let i=1;i<n;i++)if(hit(x0+dx*i/n,z0+dz*i/n)===1)return false;return true}
-function startMob(){if(!G.started)return;if(window.BPW&&BPW.W&&BPW.W.stars>0)return;const wasOn=MOB>0;MOB=22;if(!wasOn)sfxPlay(['pakad'],1);let n=0;const cand=WLK.filter(w=>w.placed&&!w.ch).map(w=>[Math.hypot(w.g.position.x-S.x,w.g.position.z-S.z),w]).filter(q=>q[0]<70&&seesMe(q[1])).sort((a,b)=>a[0]-b[0]);for(const q of cand){if(n>=10)break;q[1].ch=1;q[1].ci=n;q[1].bt=0;q[1].g.rotation.z=0;n++}if(n&&!wasOn)toast('😡 '+SLANG[Math.floor(Math.random()*SLANG.length)],2.4)}
+function startMob(){if(!G.started)return;if(window.BPW&&BPW.W&&BPW.W.stars>0)return;const wasOn=MOB>0;MOB=22;let n=0;const cand=WLK.filter(w=>w.placed&&!w.ch).map(w=>[Math.hypot(w.g.position.x-S.x,w.g.position.z-S.z),w]).filter(q=>q[0]<70&&seesMe(q[1])).sort((a,b)=>a[0]-b[0]);for(const q of cand){if(n>=10)break;q[1].ch=1;q[1].ci=n;q[1].bt=0;q[1].g.rotation.z=0;n++}if(n&&!wasOn)toast('😡 '+SLANG[Math.floor(Math.random()*SLANG.length)],2.4)}
 function turnY(g,t,dt,r){let d=t-g.rotation.y;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;g.rotation.y+=Math.max(-r*dt,Math.min(r*dt,d))}
 function freeMove(w,dt,tx2,tz2,maxSp,stop){const g=w.g,ex=tx2-g.position.x,ez=tz2-g.position.z,ed=Math.hypot(ex,ez)||1;const want=ed>stop?Math.min(maxSp,(ed-stop)*2.6+.4):0;w.vs=w.vs||0;w.vs+=(want-w.vs)*Math.min(1,(want>w.vs?4.5:8)*dt);
 if(ed>.25)turnY(g,Math.atan2(ex,ez),dt,w.vs>3?7:11);const fx=Math.sin(g.rotation.y),fz=Math.cos(g.rotation.y);g.position.x+=fx*w.vs*dt;g.position.z+=fz*w.vs*dt;
@@ -1670,7 +1679,7 @@ M.geo(gBox,x,.55,z,1.8,.9,1,[.45,.3,.18],th);M.geo(gBox,x,1.02,z,1.9,.06,1.1,[.7
 for(let q=0;q<5;q++)M.geo(gBox,x+Math.cos(th)*(-.7+q*.35),1.2+(ty===0?.4:0),z-Math.sin(th)*(-.7+q*.35),.22,ty===0?.8:.3,.1,gd[(q+ty)%5],th);
 const st=Object.assign([x,z],{v0,v1:M.p.length/3,ty,ck:cx+','+cz,m:null});STL.push(st);{const ux=-tz*sd,uz=tx*sd,ry=Math.atan2(ux,uz);putH(x+ux*.95,z+uz*.95,ry+3.14);const nc=1+Math.floor(rn()*3);for(let q=0;q<nc;q++){const al=(q-.5)*.8+rn()*.3,lat=-.95-rn()*.4;putH(x+tx*al+ux*lat,z+tz*al+uz*lat,ry+(rn()-.5)*.5)}}}}}
 /* infill: houses and shops on every empty plot between roads, copying the style around */
-{const st=13.2;for(let gx=x0;gx<x1;gx+=st)for(let gz=z0;gz<z1;gz+=st){const x=gx+rn()*st,z=gz+rn()*st;if(rn()<.03||inEB(x,z))continue;const q=nrt(x,z);if(q[0]>1e8)continue;
+{const st=13.2;for(let gx=x0;gx<x1;gx+=st)for(let gz=z0;gz<z1;gz+=st){const x=gx+rn()*st,z=gz+rn()*st;if(rn()<.03||inEB(x,z)||bpExc(x,z))continue;const q=nrt(x,z);if(q[0]>1e8)continue;
 if(q[0]>210){if(rn()<.2){const v0=M.p.length/3,r2=.9+rn()*.5,k=TC[Math.floor(rn()*4)];M.geo(gCyl,x,1.1,z,.16,2.2,.16,[.38,.26,.16]);M.geo(gIco,x,3.5,z,1.9*r2,1.5*r2,1.9*r2,k,rn()*6);M.geo(gIco,x+.25,4.7,z,1.2*r2,1,1.2*r2,[k[0]+.06,k[1]+.08,k[2]+.04],rn()*6)}continue}
 const hw=3.2+rn()*3.3,hd=3.2+rn()*3.3,rad=Math.hypot(hw,hd);const tx=q[1],tz=q[2],nx=-tz,nz=tx;let xx=x,zz=z;{const gap=q[0]-hd;if(gap>.1&&gap<40){for(const sg of[1,-1]){const ax2=x+nx*sg*gap,az2=z+nz*sg*gap;if(nrt(ax2,az2)[0]<q[0]-gap*.5){xx=x+nx*sg*(gap-.1);zz=z+nz*sg*(gap-.1);break}}}else if(gap<=.1)continue}const cr=[[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(m=>[xx+tx*m[0]+nx*m[1],zz+tz*m[0]+nz*m[1]]);let ok=true;for(const m of cr)if(nrt(m[0],m[1])[0]<-.3||inEB(m[0],m[1])){ok=false;break}if(!ok||perimBad(cr,-.3))continue;
 const lk=[];for(let u=-hw;u<=hw;u+=2.5)for(let v=-hd;v<=hd;v+=2.5)lk.push(Math.floor((xx+tx*u+nx*v)/3)+','+Math.floor((zz+tz*u+nz*v)/3));if(lk.some(k=>OCC.has(k)))continue;for(const k of lk){OCC.add(k);keys.push(k)}
