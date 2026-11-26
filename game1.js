@@ -476,8 +476,8 @@ PM.geo(gx,x,(H-1.9)/2,z,1.6,H-1.9,1.6,[.68,.68,.66],ang);PM.geo(gx,x,H-1.75,z,7.
 const ux=tx/L,uz=tz/L,dirs=[[ux,uz],[-ux,-uz],[-uz,ux],[uz,-ux]];
 for(let f2=0;f2<4;f2++){const dx=dirs[f2][0],dz=dirs[f2][1],px=-dz,pz=dx,cx=x+dx*.82,cz=z+dz*.82,hw=.8,y0=.4,y1=H-2.0,k=(np*3+f2)%4,u0=k/4,u1=(k+1)/4;
 ap.push(cx-px*hw,y0,cz-pz*hw,cx+px*hw,y0,cz+pz*hw,cx+px*hw,y1,cz+pz*hw,cx-px*hw,y0,cz-pz*hw,cx+px*hw,y1,cz+pz*hw,cx-px*hw,y1,cz-pz*hw);au.push(u0,0,u1,0,u1,1,u0,0,u1,1,u0,1)}}
-sc.add(PM.mesh());{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(ap,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(au,2));g.computeVertexNormals();sc.add(new THREE.Mesh(g,new THREE.MeshLambertMaterial({map:ART,side:THREE.DoubleSide})))}
-window.METRO={pillars:np,spacing:+(TL/N).toFixed(1),length:Math.round(TL)}}
+sc.add(PM.mesh());{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(ap,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(au,2));g.computeVertexNormals();sc.add(window.MPILM=new THREE.Mesh(g,new THREE.MeshLambertMaterial({map:ART,side:THREE.DoubleSide})))}
+window.METRO={pillars:np,spacing:+(TL/N).toFixed(1),length:Math.round(TL)};if(window.BPM2)try{BPM2({D,MW,CU,TL,PIL,quad,Mesher,H,BS:window.BS})}catch(e){console.error('BPM2',e)}}
 const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();
 sc.add(new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide})));
 {/* ঢাকা মেট্রো স্টেশন: ইটের লাল দেয়াল + কংক্রিটের ফ্রেম + সবুজ বাঁকা ছাদ + দুই ভাষার সাইনবোর্ড (সব স্টেশন একই নকশা) */
@@ -513,7 +513,7 @@ if(sp2.length){const g=new THREE.BufferGeometry();g.setAttribute('position',new 
 function inPoly(x,z,p){let c=false;for(let i=0,j=p.length-2;i<p.length;j=i,i+=2){if((p[i+1]>z)!==(p[j+1]>z)&&x<(p[j]-p[i])*(z-p[i+1])/(p[j+1]-p[i+1])+p[i])c=!c}return c}
 let HG=null,HGS='';function hgDirty(){HGS=''}
 function hgBuild(){HG=new Map();HGS=BB.length+':'+XBB.length;const add=b=>{for(let a=Math.floor(b.x0/40);a<=Math.floor(b.x1/40);a++)for(let c=Math.floor(b.z0/40);c<=Math.floor(b.z1/40);c++){const k=a*100000+c;let l=HG.get(k);if(!l){l=[];HG.set(k,l)}if(l[l.length-1]!==b)l.push(b)}};for(const b of XBB)add(b);for(const b of BB)add(b)}
-function hit(x,z){for(const p of PIL)if(Math.abs(x-p[0])<1.05&&Math.abs(z-p[1])<1.05){HIT.t='bld';return 1}for(const c of CARTS)if(!c.broken&&Math.abs(x-c[0])<1.1&&Math.abs(z-c[1])<1.1){HIT.t='cart';HIT.o=c;return 2}for(const c of OBS)if(!c.broken&&Math.abs(x-c[0])<c[2]&&Math.abs(z-c[1])<c[2]){HIT.t='prop';HIT.o=c;return 2}if(!HG||HGS!==BB.length+':'+XBB.length)hgBuild();const gl=HG.get(Math.floor(x/40)*100000+Math.floor(z/40));if(gl)for(const b of gl)if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1&&inPoly(x,z,b.p)){HIT.t='bld';return 1}return 0}
+function hit(x,z){for(const p of PIL)if(Math.abs(x-p[0])<1.05&&Math.abs(z-p[1])<1.05){HIT.t='bld';return 1}if(window.BPMED&&BPMED(x,z)){HIT.t='bld';return 1}for(const c of CARTS)if(!c.broken&&Math.abs(x-c[0])<1.1&&Math.abs(z-c[1])<1.1){HIT.t='cart';HIT.o=c;return 2}for(const c of OBS)if(!c.broken&&Math.abs(x-c[0])<c[2]&&Math.abs(z-c[1])<c[2]){HIT.t='prop';HIT.o=c;return 2}if(!HG||HGS!==BB.length+':'+XBB.length)hgBuild();const gl=HG.get(Math.floor(x/40)*100000+Math.floor(z/40));if(gl)for(const b of gl)if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1&&inPoly(x,z,b.p)){HIT.t='bld';return 1}return 0}
 
 /* street carts on footpaths: clothes, food, drinks, accessories, books */
 {const cp2=[],cc=[];let sd=12345;const rnd=()=>(sd=(sd*1664525+1013904223)%4294967296)/4294967296;
@@ -1171,6 +1171,7 @@ o.rotation.x=c.a}}
 function npcContact(v){if(v.cr||!v.init||!G.started||G.over)return;const T=V6.VT[v.type],big=!!BIGV[v.type],mw=T.w*T.l,fxn=Math.sin(v.hd),fzn=-Math.cos(v.hd),rn=T.w*.55+.05,Ln=T.l*.32,sh=Math.sin(S.h),ch=Math.cos(S.h);let best=null;
 for(const o of[-PV.ol,-PV.ol/2,0,PV.ol/2,PV.ol]){const px=S.x+sh*o,pz=S.z-ch*o;for(const q of[-Ln,0,Ln]){const cx=v.px+fxn*q,cz=v.pz+fzn*q,dx=px-cx,dz=pz-cz,d=Math.hypot(dx,dz),pen=PV.hw+.05+rn-d;if(pen>0&&(!best||pen>best.pen))best={pen,nx:dx/(d||1),nz:dz/(d||1)}}}
 if(!best)return;
+if(big&&window.BPBIG&&BPBIG(v,best,T,mw))return;
 const sg0=Math.sign(S.vf||1),inw0=(best.nx*Math.sin(S.h)-best.nz*Math.cos(S.h))*sg0,bigHit=big&&inw0<0&&Math.abs(S.vf)>=7;if(!bigHit&&(big||PV.mass<mw*.8)){S.x+=best.nx*(best.pen+.02);S.z+=best.nz*(best.pen+.02);const sg=Math.sign(S.vf||1),inw=(best.nx*Math.sin(S.h)-best.nz*Math.cos(S.h))*sg,spIn=Math.abs(S.vf);if(inw<0){S.vf*=.35}v.hold=.5;if(hitCd<=0){hitCd=.8;const sp=Math.abs(S.vf);if(inw<0&&spIn>=2.5&&v.g.userData.rdr&&!v.rd)riderHit(v,spIn);if(sp>1.5){vehSnd();crime(CRK[v.type]*.3,'💥 '+T.n+'-এ ধাক্কা!','veh');fx(v.px,2,v.pz);shake(Math.min(.8,sp/14));crashSnd(.5)}}return}
 if(hitCd<=0){const am=CRK[v.type]*(.5+Math.min(1.5,Math.abs(S.vf)/12));vehCrash(v);hitCd=.6;vehSnd();crime(am,'💥 '+T.n+'-এ ধাক্কা!','veh')}}
 function vehCrash(v){const T=V6.VT[v.type],mw=T.w*T.l,k=PV.mass/(PV.mass+mw),sg=Math.sign(S.vf||1),sp=Math.max(3,Math.abs(S.vf)),hx=Math.sin(S.h)*sg,hz=-Math.cos(S.h)*sg,dx=v.px-S.x,dz=v.pz-S.z,dl=Math.hypot(dx,dz)||1,heavy=mw>12;
@@ -1466,7 +1467,7 @@ else if(k==='auto'){mk('square',780,.035,2200)}
 else if(k==='bike'){mk('square',560,.035,2200);mk('square',840,.02,2200)}
 else{const hi=k!=='rick';ding(hi,.12,0);hornTm=setInterval(()=>ding(hi,.12,0),230)}}
 function nearTxt(){let f=1e9,s=1e9,p=1e9;for(const o of OBJ){const d=Math.hypot(S.x-o.x,S.z-o.z);if(o.k==='fuel')f=Math.min(f,d);else if(o.k==='stop')s=Math.min(s,d);else if(o.k==='chk')p=Math.min(p,d)}const t=x=>x>=1e9?'—':bn(Math.round(x))+' মি';return '<br>⛽ '+t(f)+' · 🚔 '+t(p)+' · 🚏 '+t(s)}
-function hud(dt){const v=Math.abs(S.vf),kmh=v*3.6;TR.t+=dt;TR.d+=v*dt;TR.top=Math.max(TR.top,kmh);if(kmh>=100){if(!SPD.on&&TR.t-SPD.last>25){SPD.on=1;SPD.last=TR.t;SPD.p=sfxPlay(['ye'],2)?1:0}}else{if(SPD.p){SPD.p=0;if(sfxStopIf('ye'))SPD.last=-99}if(kmh<92)SPD.on=0}
+function hud(dt){const v=Math.abs(S.vf),kmh=v*3.6;TR.t+=dt;TR.d+=v*dt;TR.top=Math.max(TR.top,kmh);if(kmh>=100){const ch=!!(window.BPW&&BPW.W&&BPW.W.stars>0);if(!SPD.on&&TR.t-(ch?(SPD.lm||-99):SPD.last)>(ch?4:25)){SPD.on=1;if(ch)SPD.lm=TR.t;else SPD.last=TR.t;SPD.k=ch?'masti':'ye';SPD.p=sfxPlay([SPD.k],2)?1:0}}else{if(SPD.p){SPD.p=0;if(sfxStopIf(SPD.k||'ye')){if(SPD.k==='masti')SPD.lm=-99;else SPD.last=-99}}if(kmh<92)SPD.on=0}
 $('gs').textContent=bn(Math.round(kmh));$('gr').textContent=S.park?'P':S.vf>.3?'D':S.vf<-.3?'R':'N';$('gf').style.width=Math.min(100,kmh/90*100)+'%';
 const m=Math.floor(TR.t/60),s=Math.floor(TR.t%60),deg=Math.round(((S.h*180/Math.PI)%360+360)%360);
 $('ln').textContent='💸 মাস্তানির জরিমানা ৳'+bn(Math.round(G.loss).toLocaleString('en-IN'))+(G.cmbT>0&&G.cmb>1?'  ×'+bn(G.cmb):'');$('fl').textContent=(PV.use?'⛽ '+bn(G.fuel.toFixed(2))+' লি':'🦵 পা চালিত')+' · 👥 '+bn(G.pass)+'/'+bn(G.pm)+' · ৳'+bn(Math.round(G.cash));$('fl').style.color=G.fuel<.15?'#ff6b6b':'#fff';if(OBJV&&G.started){$('ob').style.display='block';const o=OBJV.o,dx=o.x-S.x,dz=o.z-S.z;$('oba').style.transform='rotate('+(Math.atan2(dx,-dz)-S.h)+'rad)';$('obt').textContent=o.name+' · '+bn(Math.round(Math.hypot(dx,dz)))+' মি · ⏱ '+bn(Math.ceil(OBJV.t))+' সে'}$('tr').innerHTML='⏱ '+bn(String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'))+'<br>📏 '+bn((TR.d/1000).toFixed(2))+' কিমি<br>🏁 সর্বোচ্চ '+bn(Math.round(TR.top))+' কিমি/ঘ'+nearTxt();
@@ -1479,7 +1480,7 @@ function hold(id,k){const e=$(id),on=v=>{inp[k]=v;e.classList.toggle('on',!!v)};
 hold('bL','L');hold('bR','R');hold('bG','G');hold('bB','B');hold('bV','V');hold('bH','H');hold('bP','P');
 const KM={ArrowLeft:'L',a:'L',ArrowRight:'R',d:'R',ArrowUp:'G',w:'G',ArrowDown:'V',s:'V',' ':'B',Shift:'P',h:'H'};
 /* ---- voice clips (hit a man / woman, 100 km/h, mob) and the music player ---- */
-const SFXF={behen:'sfx/behen.mp3',saali:'sfx/saali.mp3',dhat:'sfx/dhat.mp3',tari:'sfx/tari.mp3',pakad:'sfx/pakad.mp3',ye:'sfx/ye.mp3'},SFXA={};
+const SFXF={behen:'sfx/behen.mp3',saali:'sfx/saali.mp3',dhat:'sfx/dhat.mp3',tari:'sfx/tari.mp3',pakad:'sfx/pakad.mp3',ye:'sfx/ye.mp3',masti:'sfx/masti.mp3'},SFXA={};
 function sfxLoad(){for(const k in SFXF){if(SFXA[k])continue;try{const a=new Audio(SFXF[k]);a.preload='auto';a.volume=1;SFXA[k]=a}catch(e){}}}
 const SFXS={cur:null,tok:0,t0:0,pend:null,pt:0};
 function sfxStopNow(){SFXS.tok++;const a=SFXS.cur;SFXS.cur=null;if(a){a.onended=null;a.onerror=null;try{a.pause();a.currentTime=0}catch(e){}}}
