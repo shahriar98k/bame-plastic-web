@@ -149,7 +149,7 @@ a.x-=r[1]*d*sa;a.z-=r[2]*d*sa;b.x+=r[1]*d*sb;b.z+=r[2]*d*sb;
 if(!a.rb&&(Math.sin(a.h)*r[1]-Math.cos(a.h)*r[2])*a.v>0)a.v*=.8;if(!b.rb&&(-Math.sin(b.h)*r[1]+Math.cos(b.h)*r[2])*b.v>0)b.v*=.8}}
 /* police hitting normal traffic: the traffic car is pushed the way the police car was moving (a mild slide, not thrown like a player hit) */
 function copHurt(u,c,mv){const M0=MASS[u.kind]||2;u.hp=(u.hp===undefined?100:u.hp)-c*(.7+mv*.1)/(.4+M0*.6);if(u.hp<=0&&!u.wrk){u.wrk=1;u.dis=7;u.spin=(Math.random()<.5?-1:1)*2.2;u.v*=.4;toast('🚔 পুলিশের গাড়ি অচল হয়ে গেল!',1.8);if(window.BPD)BPD.sparks(u.x,1,u.z,14)}else if(c>5&&!u.wrk){u.v*=.5;u.dis=Math.max(u.dis,.5+c*.04);u.spin=(Math.random()<.5?-1:1)*(.8+c*.1)}}
-function copPed(dt){if(typeof WLK==='undefined')return;for(const u of W.units){if(u.kind==='boat'||u.wrk||Math.abs(u.v)<2.5)continue;const ufx=Math.sin(u.h),ufz=-Math.cos(u.h),R=u.L*.5+3;for(const w of WLK){if(!w.placed||!w.g||w.hold>.5)continue;const p=w.g.position,dx=p.x-u.x,dz=p.z-u.z;if(dx*dx+dz*dz>R*R)continue;const f=dx*ufx+dz*ufz,l=dx*-ufz+dz*ufx;if(Math.abs(l)>u.Wd*.5+.45||Math.abs(f)>u.L*.5+.35)continue;w.hold=2.6;w.fl=0;try{pedSnd(w.fem);panic(p.x,p.z)}catch(e){}u.v*=.55;copHurt(u,4,1);if(Math.hypot(p.x-S.x,p.z-S.z)<60&&typeof crashSnd==='function')crashSnd(.35)}}}
+function copPed(dt){if(typeof WLK==='undefined')return;for(const u of W.units){if(u.kind==='boat'||u.wrk||Math.abs(u.v)<2.5)continue;const ufx=Math.sin(u.h),ufz=-Math.cos(u.h),R=u.L*.5+3;for(const w of WLK){if(!w.placed||!w.g||w.hold>.5)continue;const p=w.g.position,dx=p.x-u.x,dz=p.z-u.z;if(dx*dx+dz*dz>R*R)continue;const f=dx*ufx+dz*ufz,l=dx*-ufz+dz*ufx;if(Math.abs(l)>u.Wd*.5+.45||Math.abs(f)>u.L*.5+.35)continue;w.hold=2.6;w.fl=0;try{panic(p.x,p.z)}catch(e){}u.v*=.55;copHurt(u,4,1);if(Math.hypot(p.x-S.x,p.z-S.z)<60&&typeof crashSnd==='function')crashSnd(.35)}}}
 function copVeh(dt){if(typeof VEH==='undefined'||typeof V6==='undefined')return;const now=performance.now();for(const u of W.units.concat(W.rbu)){if(u.kind==='boat')continue;const mc=u.Wd*u.L*(1+.3*((MASS[u.kind]||2)-1)),R=u.L*.5+8,ufx=Math.sin(u.h),ufz=-Math.cos(u.h);
 for(let vi=0;vi<VEH.length;vi++){const v=VEH[vi];if(!v.placed||!v.init||v.cr)continue;const dx=v.px-u.x,dz=v.pz-u.z;if(dx*dx+dz*dz>R*R)continue;const T=V6.VT[v.type];if(!T)continue;
 const vfx=Math.sin(v.hd),vfz=-Math.cos(v.hd),f=-(dx*vfx+dz*vfz),l=-(dx*-vfz+dz*vfx);if(f>0&&f<(T.l+u.L)*.5+2.5+v.v*.8&&Math.abs(l)<(T.w+u.Wd)*.5+.4)v.hold=Math.max(v.hold||0,.35);
@@ -188,7 +188,7 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{for(const
 /* ---------- তাপ ও তারা ---------- */
 function pedStar(n){let k=0;for(let i=1;i<=5;i++)if(n>=TP[i])k=i;return k}
 function starsOf(){return Math.min(5,pedStar(W.ped)+Math.floor(W.cop/5))}
-function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n>o){toast(MSG[n],3.8);W.spT=0;if(o===0){W.nx=rnd(5.5,8);W.arr=W.nx}else W.nx=Math.min(W.nx,rnd(4,6))}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
+function setStars(n){const o=W.stars;if(n===o)return;W.stars=n;if(n<=0)W.mp=null;if(n>o){W.mp={k:UK.filter(q=>q!=='boat'&&need(n)[q]>0),seen:new Set(W.units.concat(W.rbu))};toast(MSG[n],3.8);W.spT=0;if(o===0){W.nx=rnd(5.5,8);W.arr=W.nx}else W.nx=Math.min(W.nx,rnd(4,6))}else if(n===0){toast('🕶️ পুলিশ আপনাকে হারিয়ে ফেলেছে — ওয়ান্টেড শেষ!',3.4)}else toast('⭐ ওয়ান্টেড কমে '+bn(n)+'★ — '+LV[n],2.6)}
 function addHeat(k){if(k==='ped')W.ped++;else if(k==='cop')W.cop++;else return;W.cc=0;W.dec=0;setStars(starsOf())}
 function dropStar(){const n=starsOf();if(n<=0){W.ped=W.cop=0;return}if(W.cop>=5)W.cop-=5;else{const p=pedStar(W.ped);W.ped=p>1?TP[p-1]:0}setStars(starsOf());if(W.stars===0)W.ped=W.cop=0}
 /* ---------- সেফ হাউস ---------- */
@@ -313,7 +313,6 @@ if(W.stars>shLast){shPend=1;shNew=0}shLast=W.stars;
 for(const u of W.units){if(!shSeen.has(u.kind)&&dist(u.x,u.z,S.x,S.z)<160){shSeen.add(u.kind);shPend=1;shNew=1}}
 if(W.heli&&!shSeen.has('heli')){shSeen.add('heli');shPend=1;shNew=1}
 if(!shPend||shT>0)return;shPend=0;shT=3;
-try{sfxPlay(['pakad'],1)}catch(e){}
 if(!shEl){const st=document.createElement('style');st.textContent=SHCSS;document.head.appendChild(st);shEl=document.createElement('div');shEl.id='bpsh';document.body.appendChild(shEl)}
 const L=shNew?['বড় স্যার এসে গেছেন! পাকড়াও ওকে!','নতুন ফোর্স চলে এসেছে — ঘিরে ফেলো!']:['পাকড়াও ওকে!','ধরো! পালাতে দিয়ো না!','থামাও গাড়িটা!','ঘিরে ফেলো ওকে!'];shEl.innerHTML='<i>🚓</i><div><small>পুলিশ রেডিও · '+nm()+'</small><b>“'+L[Math.floor(Math.random()*L.length)]+'”</b></div>';
 shEl.classList.remove('on');void shEl.offsetWidth;shEl.classList.add('on');clearTimeout(shEl._t);shEl._t=setTimeout(()=>shEl.classList.remove('on'),2400)}
@@ -324,7 +323,7 @@ if(n>=nd&&v<2)W.bust+=dt*Math.min(1.4,1+.1*(n-nd));else if(n>=nd&&v<4){}else W.b
 if(W.bust>=T&&!BZ){const fine=100000*W.stars,w=LV[W.stars],stars=W.stars;G.loss+=fine;W.bust=0;
 try{startBust(G.loss,w,stars)}catch(e){console.error(e);bzEnd();W.stars=0;W.ped=W.cop=W.dec=0;try{endTrip('পুলিশের হাতে ধরা পড়লেন — '+w)}catch(x){console.error(x)}}}}
 function tick(dt){if(!G.started||G.over){siren(0);return}if(W.stars>0&&typeof MOB!=='undefined'&&MOB>0)MOB=.001;shout(dt);
-W.tk+=dt;garTick(dt);antiStuck(dt);const kmh=Math.abs(S.vf)*3.6;
+W.tk+=dt;garTick(dt);if(W.mp&&W.stars>0){for(const u of W.units.concat(W.rbu)){if(!W.mp.seen.has(u)&&W.mp.k.indexOf(u.kind)>=0){W.mp=null;try{sfxPlay(['masti'],1)}catch(e){}break}}}antiStuck(dt);const kmh=Math.abs(S.vf)*3.6;
 if(kmh>110){W.sp+=dt;if(W.sp>6){W.sp=-14;addHeat('speed');if(W.stars>0)toast('📸 অতিরিক্ত গতি — পুলিশ নজর রাখছে',2)}}else if(W.sp>0&&kmh<95)W.sp=Math.max(0,W.sp-dt);
 W.cc+=dt;
 if((W.ped||W.cop)&&W.cc>10){const nr=nearest(),rate=nr<75?.6:(nr>130?8:3.5);W.dec+=rate*dt;if(W.dec>=60){W.dec=0;dropStar()}}
@@ -351,7 +350,7 @@ const px=H.x,pz=H.z;H.x+=(tx-H.x)*k;H.z+=(tz-H.z)*k;H.y+=(ty-H.y)*Math.min(1,dt*
 const vx=H.x-px,vz=H.z-pz;if(vx*vx+vz*vz>1e-6)H.h=Math.atan2(vx,vz);H.g.position.set(H.x,H.y+Math.sin(H.t*2)*.4,H.z);H.g.rotation.y=H.h;H.g.rotation.x+=((H.mode==='d'?.3:.06)-H.g.rotation.x)*Math.min(1,dt*4);H.rot.rotation.y+=dt*38;H.lm.color.setHex(f?0xff2020:0x300000);
 const dir=new THREE.Vector3(S.x-H.x,-H.g.position.y,S.z-H.z),len=dir.length();H.beam.position.copy(H.g.position);H.beam.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir.normalize());H.beam.scale.set(1,len,1)}
 bustCheck(dt);const ng=W.stars>0?nearestGround():1e9;siren(ng<100?Math.max(0,1-ng/100):0)}
-function cleanup(){clearAll();W.flat=0;W.nx=0;W.arr=0;W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
+function cleanup(){W.mp=null;clearAll();W.flat=0;W.nx=0;W.arr=0;W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return o.apply(this,arguments)}}
 after('crime',function(a,m,k){window.BPHK=k||'prop';window.BPHK_t=performance.now();if(typeof FXL!=='undefined'){const t=hitTex(hk(window.BPHK));for(const f of FXL)if(f.t<.05&&f.s.material.map!==t){f.s.material.map=t;f.s.material.needsUpdate=true}}addHeat(k||'prop')});after('gameTick',tick);after('hud',hudTick);after('drawMini',mini);before('endTrip',cleanup);
