@@ -97,7 +97,7 @@ let best=null;for(let i=0;i<(front?150:50)&&P.length;i++){const p=P[Math.floor(M
 if(!best){if(typeof nrt==='function'){for(let i=0;i<60;i++){const a=rnd(0,6.283),r=rnd(mn,mx),x=S.x+Math.cos(a)*r,z=S.z+Math.sin(a)*r;let q=null;try{q=nrt(x,z)}catch(e){}if(q&&q[0]<q[3]/2-1&&!blocked(x,z)&&(!front||((x-S.x)*fx+(z-S.z)*fz)/r>.4))return{x,z,h:Math.atan2(S.x-x,-(S.z-z))}}}return null}let dx=S.x-best[0],dz=S.z-best[1];const dir=(best[2]*dx+best[3]*dz)>=0?1:-1;return{x:best[0],z:best[1],h:Math.atan2(best[2]*dir,-best[3]*dir),dx:best[2],dz:best[3],w:best[5]}}
 /* ---------- ইউনিট ---------- */
 function spawn(kind,front){if(kind==='heli'){if(W.heli)return;W.heli=mkHeli();W.heli.x=S.x+rnd(-60,60);W.heli.z=S.z+rnd(-60,60);toast('🚁 পুলিশ হেলিকপ্টার আকাশে!',2.4);return}
-const es=W.cc>12,sp=front&&kind!=='boat'&&!es?(spawnPt(45,95,false,true)||spawnPt(40,90,false)):spawnPt(kind==='boat'?110:(es?150:105),kind==='boat'?260:(es?250:190),kind==='boat');if(!sp||W.units.concat(W.rbu).some(o=>dist(o.x,o.z,sp.x,sp.z)<9))return;const m=mkUnit(kind);
+const es=W.cc>16,sp=front&&kind!=='boat'&&!es?(spawnPt(45,95,false,true)||spawnPt(40,90,false)):spawnPt(kind==='boat'?110:(es?120:105),kind==='boat'?260:(es?220:190),kind==='boat');if(!sp||W.units.concat(W.rbu).some(o=>dist(o.x,o.z,sp.x,sp.z)<9))return;const m=mkUnit(kind);
 const u={kind,g:m.g,L:m.L,Wd:m.Wd,x:sp.x,z:sp.z,h:sp.h,v:0,stuck:0,dis:0,pref:Math.random()<.5?1:-1,hc:0,spin:0,top:0,kx:0,kz:0};m.g.position.set(u.x,0,u.z);m.g.rotation.y=-u.h;W.units.push(u)}
 function remove(u){kill(u.g);const i=W.units.indexOf(u);if(i>=0)W.units.splice(i,1)}
 function clearAll(){rbClear();for(const u of W.units.slice())remove(u);if(W.heli){kill(W.heli.g);kill(W.heli.beam);W.heli=null}}
@@ -110,13 +110,13 @@ const TOP=()=>(typeof PV!=='undefined'&&PV.top)||18;
 function moveUnit(u,dt){const T=TOP(),pv=Math.abs(S.vf),fx=Math.sin(S.h),fz=-Math.cos(S.h);let tx=S.x+fx*Math.sign(S.vf||1)*pv*.7,tz=S.z+fz*Math.sign(S.vf||1)*pv*.7;const dp=dist(u.x,u.z,S.x,S.z);
 if(u.dis>0){u.dis-=dt;u.v*=Math.pow(.2,dt);u.h+=u.spin*dt;u.spin*=.96;if(u.dis<=0)u.spin=0}
 else{if(u.ax===undefined){u.ax=tx;u.az=tz}
-const kf=Math.min(1,dt*(dp<22?4.5:2));u.ax+=(tx-u.ax)*kf;u.az+=(tz-u.az)*kf;tx=u.ax;tz=u.az;
+const kf=Math.min(1,dt*(dp<22?4.5:2));u.ax+=(tx-u.ax)*kf;u.az+=(tz-u.az)*kf;tx=u.ax;tz=u.az;if(W.hz){const hx0=u.x-W.hz.x,hz0=u.z-W.hz.z,hl=Math.hypot(hx0,hz0)||1;if(hl<110){tx=u.x+hx0/hl*90;tz=u.z+hz0/hl*90}}
 const rx=u.x-S.x,rz=u.z-S.z,ah=rx*fx+rz*fz,hx=Math.sin(u.h),hz=-Math.cos(u.h),face=dp>1?(-rx*hx-rz*hz)/dp:0;
 const appr=u.kind!=='boat'&&ah>-2&&(ah>6||u.side)&&dp<115&&pv>3&&face>.1;
 if(appr){if(!u.side)u.side=(rx*(-fz)+rz*fx)>=0?1:-1;tx+=-fz*u.side*5.5;tz+=fx*u.side*5.5}else u.side=0;
 const turnA=!appr&&u.kind!=='boat'&&ah<2&&(hx*fx+hz*fz)<-.2&&dp<70&&pv>3;
-let tgt=Math.atan2(tx-u.x,-(tz-u.z)),base=('efgh'.indexOf(u.kind)>=0?.7:.76)+.03*W.stars;if(u.kind==='boat')base=.8;
-let sp=T*base*((u.hp!==undefined&&u.hp<40)?.7:1);if(appr&&dp<70)sp*=.8;if(turnA)sp=Math.min(sp,7);if(dp>260)sp*=1.1;else if(dp<16)sp=Math.min(sp,Math.max(pv*1.25+3,4));for(const o of W.rbu)if(dist(o.x,o.z,u.x,u.z)<11){sp=Math.min(sp,3);break}
+let tgt=Math.atan2(tx-u.x,-(tz-u.z)),base=('efgh'.indexOf(u.kind)>=0?.78:.84)+.03*W.stars;if(u.kind==='boat')base=.8;
+let sp=T*base*((u.hp!==undefined&&u.hp<40)?.7:1);if(appr&&dp<70)sp*=.8;if(turnA)sp=Math.min(sp,7);if(dp>110)sp*=1+Math.min(.22,(dp-110)/650);else if(dp<16)sp=Math.min(sp,Math.max(pv*1.25+3,4));for(const o of W.rbu)if(dist(o.x,o.z,u.x,u.z)<11){sp=Math.min(sp,3);break}
 if(u.kind!=='boat'){for(const o of W.units){if(o===u||o.kind==='boat')continue;const ox=o.x-u.x,oz=o.z-u.z;if(ox*ox+oz*oz>625)continue;const f=ox*hx+oz*hz,l=ox*-hz+oz*hx,gp=f-(u.L+o.L)*.5;if(f>0&&Math.abs(l)<(u.Wd+o.Wd)*.5+.7&&gp<4+Math.max(0,u.v)*.5){const ov=Math.max(0,o.v*(hx*Math.sin(o.h)+hz*-Math.cos(o.h)));sp=Math.min(sp,Math.max(0,ov*.9+(gp-1.2)*1.4));if(gp<6)tgt+=(l>0?-1:1)*.3}}
 if(dp>10&&typeof VEH!=='undefined'&&typeof V6!=='undefined')for(const o of VEH){if(!o.placed||!o.init||o.cr)continue;const ox=o.px-u.x,oz=o.pz-u.z;if(ox*ox+oz*oz>400)continue;const f=ox*hx+oz*hz;if(f<=0||f>16)continue;const l=ox*-hz+oz*hx,T2=V6.VT[o.type];if(!T2||Math.abs(l)>(u.Wd+T2.w)*.5+.9)continue;tgt+=(l>0?-1:1)*.28;if(f<8)sp=Math.min(sp,Math.max(5,o.v+3+f*.5));break}}
 const la=Math.max(4,u.v*.7+3);let ok=false;const offs=[0,.5*u.pref,-.5*u.pref,1*u.pref,-1*u.pref,1.6*u.pref,-1.6*u.pref];
@@ -126,7 +126,7 @@ let dh=tgt-u.h;dh=Math.atan2(Math.sin(dh),Math.cos(dh));const mt=(2.5)*Math.min(
 if(u.rev>0){u.rev-=dt;sp=-4;u.h+=u.pref*.9*dt}u.v+=(sp-u.v)*Math.min(1,(sp>u.v?1.15:3)*dt)}
 const nx=u.x+Math.sin(u.h)*u.v*dt,nz=u.z-Math.cos(u.h)*u.v*dt;
 const sgv=u.v>=0?1:-1;if(Math.abs(u.v)>.3&&blk(u,nx+Math.sin(u.h)*sgv*u.L*.5,nz-Math.cos(u.h)*sgv*u.L*.5)){u.v*=.2;u.stuck+=dt;u.pref=-u.pref;if(u.stuck>1.3&&!(u.rev>0)){u.rev=1.3;u.stuck=.2}}else{u.x=nx;u.z=nz;if(u.v>1)u.stuck=Math.max(0,u.stuck-dt)}
-if(dp>330){u.gone=1;return}if(u.stuck>4&&dp>60){const sp=spawnPt(u.kind==='boat'?110:50,u.kind==='boat'?260:110,u.kind==='boat');if(sp&&!W.units.concat(W.rbu).some(o=>o!==u&&dist(o.x,o.z,sp.x,sp.z)<9)){u.x=sp.x;u.z=sp.z;u.h=sp.h;u.v=0;u.stuck=0}else u.stuck=0}
+if(dp>560){u.gone=1;return}if(u.stuck>4&&dp>60){const sp=spawnPt(u.kind==='boat'?110:50,u.kind==='boat'?260:110,u.kind==='boat');if(sp&&!W.units.concat(W.rbu).some(o=>o!==u&&dist(o.x,o.z,sp.x,sp.z)<9)){u.x=sp.x;u.z=sp.z;u.h=sp.h;u.v=0;u.stuck=0}else u.stuck=0}
 u.g.position.set(u.x,u.kind==='boat'?Math.sin(performance.now()*.002+u.x)*.05:0,u.z);u.g.rotation.y=-u.h;u.g.rotation.z=u.dis>0?Math.sin(performance.now()*.02)*.08:0}
 const RES={a:.3,b:.4,c:.45,d:.55,e:.65,f:.72,g:.72,h:.75};
 function contact(u,dt){if(u.kind==='boat'||G.over)return;u.hc-=dt;const sh=Math.sin(S.h),ch=Math.cos(S.h),hw=(typeof PV!=='undefined'&&PV.hw)||.9,ol=(typeof PV!=='undefined'&&PV.ol)||2,k=u.L*.33,uf=[Math.sin(u.h),-Math.cos(u.h)],rn=u.Wd*.5;
@@ -148,7 +148,7 @@ const r=obbPen(a.x,a.z,a.h,a.Wd/2+m,a.L/2+m,b.x,b.z,b.h,b.Wd/2+m,b.L/2+m);if(!r)
 a.x-=r[1]*d*sa;a.z-=r[2]*d*sa;b.x+=r[1]*d*sb;b.z+=r[2]*d*sb;
 if(!a.rb&&(Math.sin(a.h)*r[1]-Math.cos(a.h)*r[2])*a.v>0)a.v*=.8;if(!b.rb&&(-Math.sin(b.h)*r[1]+Math.cos(b.h)*r[2])*b.v>0)b.v*=.8}}
 /* police hitting normal traffic: the traffic car is pushed the way the police car was moving (a mild slide, not thrown like a player hit) */
-function copHurt(u,c,mv){const M0=MASS[u.kind]||2;u.hp=(u.hp===undefined?100:u.hp)-c*(.7+mv*.1)/(.4+M0*.6);if(u.hp<=0&&!u.wrk){u.wrk=1;u.dis=7;u.spin=(Math.random()<.5?-1:1)*2.2;u.v*=.4;toast('🚔 পুলিশের গাড়ি অচল হয়ে গেল!',1.8);if(window.BPD)BPD.sparks(u.x,1,u.z,14)}else if(c>5&&!u.wrk){u.v*=.5;u.dis=Math.max(u.dis,.5+c*.04);u.spin=(Math.random()<.5?-1:1)*(.8+c*.1)}}
+function copHurt(u,c,mv){const M0=MASS[u.kind]||2;u.hp=(u.hp===undefined?170:u.hp)-c*(.7+mv*.1)/(.4+M0*.6)*.65;if(u.hp<=0&&!u.wrk){u.wrk=1;u.dis=7;u.spin=(Math.random()<.5?-1:1)*2.2;u.v*=.4;toast('🚔 পুলিশের গাড়ি অচল হয়ে গেল!',1.8);if(window.BPD)BPD.sparks(u.x,1,u.z,14)}else if(c>8&&!u.wrk){u.v*=.6;u.dis=Math.max(u.dis,.35+c*.025);u.spin=(Math.random()<.5?-1:1)*(.8+c*.1)}}
 function copPed(dt){if(typeof WLK==='undefined')return;for(const u of W.units){if(u.kind==='boat'||u.wrk||Math.abs(u.v)<2.5)continue;const ufx=Math.sin(u.h),ufz=-Math.cos(u.h),R=u.L*.5+3;for(const w of WLK){if(!w.placed||!w.g||w.hold>.5)continue;const p=w.g.position,dx=p.x-u.x,dz=p.z-u.z;if(dx*dx+dz*dz>R*R)continue;const f=dx*ufx+dz*ufz,l=dx*-ufz+dz*ufx;if(Math.abs(l)>u.Wd*.5+.45||Math.abs(f)>u.L*.5+.35)continue;w.hold=2.6;w.fl=0;try{panic(p.x,p.z)}catch(e){}u.v*=.55;copHurt(u,4,1);if(Math.hypot(p.x-S.x,p.z-S.z)<60&&typeof crashSnd==='function')crashSnd(.35)}}}
 function copVeh(dt){if(typeof VEH==='undefined'||typeof V6==='undefined')return;const now=performance.now();for(const u of W.units.concat(W.rbu)){if(u.kind==='boat')continue;const mc=u.Wd*u.L*(1+.3*((MASS[u.kind]||2)-1)),R=u.L*.5+8,ufx=Math.sin(u.h),ufz=-Math.cos(u.h);
 for(let vi=0;vi<VEH.length;vi++){const v=VEH[vi];if(!v.placed||!v.init||v.cr)continue;const dx=v.px-u.x,dz=v.pz-u.z;if(dx*dx+dz*dz>R*R)continue;const T=V6.VT[v.type];if(!T)continue;
@@ -194,15 +194,33 @@ function dropStar(){const n=starsOf();if(n<=0){W.ped=W.cop=0;return}if(W.cop>=5)
 /* ---------- সেফ হাউস ---------- */
 function label(txt){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.fillStyle='rgba(76,29,149,.92)';x.beginPath();x.roundRect?x.roundRect(2,4,252,56,14):x.rect(2,4,252,56);x.fill();x.fillStyle='#fff';x.font='800 28px "Hind Siliguri","Noto Sans Bengali",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,128,34);
 const m=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}),s=new THREE.Sprite(m);s.scale.set(9,2.25,1);s.userData.own=1;return s}
-function mkGar(p){const off=p[5]/2+5,x=p[0]-p[3]*off,z=p[1]+p[2]*off;if(blocked(x,z))return false;const g=new THREE.Group(),bm=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,60,14,1,true),new THREE.MeshBasicMaterial({color:0xa855f7,transparent:true,opacity:.26,depthWrite:false,side:THREE.DoubleSide,fog:false,blending:THREE.AdditiveBlending}));bm.position.y=30;g.add(bm);
-const sh=new THREE.Mesh(geo(7,3.2,5),mat(0x4c1d95));sh.position.y=1.6;g.add(sh);const dr=new THREE.Mesh(geo(4,2.4,.15),mat(0x1a1033));dr.position.set(0,1.25,2.55);g.add(dr);const lb=label('সেফ হাউস');lb.position.y=6;g.add(lb);g.position.set(x,0,z);g.rotation.y=Math.atan2(S.x-x,S.z-z);g.userData.own=1;sc.add(g);W.gar.push({x,z,g});return true}
+let GPG=null;
+function roadDist(x,z){if(!GPG){GPG=new Map();for(const p of BPJ_T.pts()||[]){const k=Math.floor(p[0]/30)+','+Math.floor(p[1]/30);let l=GPG.get(k);if(!l){l=[];GPG.set(k,l)}l.push([p[0],p[1],p[5]])}}const cx=Math.floor(x/30),cz=Math.floor(z/30);let b=1e9;for(let a=-1;a<=1;a++)for(let q=-1;q<=1;q++){const l=GPG.get((cx+a)+','+(cz+q));if(!l)continue;for(const e of l){const d=Math.hypot(e[0]-x,e[1]-z)-e[2]/2;if(d<b)b=d}}return b}
+function regB(x,z,ry,lx,lz,w,d){const cr=Math.cos(ry),sr=Math.sin(ry),cx=x+lx*cr+lz*sr,cz=z-lx*sr+lz*cr,c=[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]].map(q=>[cx+q[0]*cr+q[1]*sr,cz-q[0]*sr+q[1]*cr]),xs=c.map(q=>q[0]),zs=c.map(q=>q[1]);if(typeof XBB!=='undefined')XBB.push({p:c.flat(),x0:Math.min(...xs),x1:Math.max(...xs),z0:Math.min(...zs),z1:Math.max(...zs)})}
+function gScore(p,s,dd){const nx=-p[3]*s,nz=p[2]*s,x=p[0]+nx*dd,z=p[1]+nz*dd,ry=Math.atan2(-nx,-nz),cr=Math.cos(ry),sr=Math.sin(ry),W2=(lx,lz)=>[x+lx*cr+lz*sr,z-lx*sr+lz*cr];
+for(const lx of[-12,-6,0,6,12])for(const lz of[-10,-5,0,5,10,12]){const q=W2(lx,lz);if(hit(q[0],q[1])!==0||roadDist(q[0],q[1])<3.5||(typeof kWater==='function'&&kWater(q[0],q[1])))return null}
+for(let t=12;t<dd-p[5]/2;t+=4){const q=[x-nx*t,z-nz*t];if(hit(q[0],q[1])!==0)return null}
+let bc=0;for(let k=0;k<16;k++){const a=k*Math.PI/8;if(hit(x+Math.cos(a)*30,z+Math.sin(a)*30)===1)bc++}
+return{x,z,ry,dd,pw:p[5],bc}}
+function mkGar(c){const x=c.x,z=c.z,ry=c.ry,g=new THREE.Group(),bm=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,60,14,1,true),new THREE.MeshBasicMaterial({color:0xa855f7,transparent:true,opacity:.22,depthWrite:false,side:THREE.DoubleSide,fog:false,blending:THREE.AdditiveBlending}));bm.position.set(0,30,2);g.add(bm);
+const add=(m,px,py,pz)=>{m.position.set(px,py,pz);g.add(m);return m};
+const pad=new THREE.Mesh(new THREE.PlaneGeometry(24,25),mat(0x2e3035));pad.rotation.x=-Math.PI/2;add(pad,0,.07,1.5);
+const Ld=Math.max(2,c.dd-c.pw/2-12);const dv=new THREE.Mesh(new THREE.PlaneGeometry(9,Ld+2),mat(0x2e3035));dv.rotation.x=-Math.PI/2;add(dv,0,.065,13+Ld/2);
+const rg=new THREE.Mesh(new THREE.RingGeometry(4.2,4.7,36),new THREE.MeshBasicMaterial({color:0xe9d5ff,transparent:true,opacity:.75,side:THREE.DoubleSide}));rg.rotation.x=-Math.PI/2;add(rg,0,.1,2);
+add(new THREE.Mesh(geo(18,6.4,7),mat(0x7b8794)),0,3.2,-8);add(new THREE.Mesh(geo(18.6,.5,7.6),mat(0x37414f)),0,6.6,-8);
+add(new THREE.Mesh(geo(6,4.2,.2),mat(0xd9a21b)),0,2.1,-4.42);add(new THREE.Mesh(geo(6,.5,.22),mat(0x222428)),0,3.7,-4.4);
+for(const sx of[-1,1]){add(new THREE.Mesh(geo(.6,2.4,13),mat(0x8c8f94)),sx*12.2,1.2,2);add(new THREE.Mesh(geo(.3,5,.3),mat(0x333333)),sx*10,2.5,8);add(new THREE.Mesh(geo(1.2,.3,.6),mat(0xfff3b0)),sx*10,5.1,8)}
+const lb=label('সেফ হাউস');add(lb,0,9,-2);
+g.position.set(x,0,z);g.rotation.y=ry;g.userData.own=1;sc.add(g);
+regB(x,z,ry,0,-8,18,7);regB(x,z,ry,-12.2,2,.6,13);regB(x,z,ry,12.2,2,.6,13);
+W.gar.push({x,z,g});return true}
 function placeGar(){const P=BPJ_T.pts()||[];if(!P.length)return;W.gar=[];const CS=2000,cells={};for(const p of P){const cx=Math.floor(p[0]/CS),cz=Math.floor(p[1]/CS),k=cx+','+cz;(cells[k]||(cells[k]=[])).push([dist(p[0],p[1],(cx+.5)*CS,(cz+.5)*CS),p])}
-for(const k in cells){const L=cells[k].sort((a,b)=>a[0]-b[0]).slice(0,80);for(const e of L){const p=e[1];if(dist(p[0],p[1],S.x,S.z)<60||W.gar.some(q=>dist(q.x,q.z,p[0],p[1])<1300))continue;if(mkGar(p))break}}}
-function garTick(dt){W.gcd-=dt;W.gmsg-=dt;if(!W.gar){if(G.started)placeGar();return}
-const dmg=window.BPD?BPD.v:0;for(const q of W.gar){const d=dist(q.x,q.z,S.x,S.z);q.g.visible=d<650||W.stars>0;
-if(d<16&&(W.stars>0||dmg>=10)&&(W.stars>0||Math.abs(S.vf)<7)){if(W.gcd>0){if(W.gmsg<=0){W.gmsg=4;toast('🔒 সেফ হাউস এখন বন্ধ — '+bn(Math.ceil(W.gcd))+' সেকেন্ড পরে আসুন',2)}continue}
-const fee=Math.min(Math.max(0,G.cash),500+W.stars*1500+Math.round(dmg*25));G.cash-=fee;const wasW=W.stars;W.ped=W.cop=W.dec=0;W.cc=99;setStars(0);clearAll();if(window.BPD)BPD.repair();W.gcd=45;
-toast('🏠 সেফ হাউস: মেরামত হয়ে গেল'+(wasW?', পুলিশ আপনাকে হারিয়ে ফেলেছে':'')+' — ফি '+money(fee),3.6)}}}
+for(const k in cells){const L=cells[k].sort((a,b)=>a[0]-b[0]).slice(0,16);let best=null;for(const e of L){const p=e[1];for(const s of[1,-1])for(const dd of[34,48,64]){const c=gScore(p,s,dd);if(!c||dist(c.x,c.z,S.x,S.z)<60||W.gar.some(q=>dist(q.x,q.z,c.x,c.z)<1300))continue;if(!best||c.bc>best.bc)best=c}}if(best)mkGar(best)}}
+function garTick(dt){W.gcd-=dt;W.gmsg-=dt;W.hid=W.hid||0;if(!W.gar){if(G.started)placeGar();return}
+const dmg=window.BPD?BPD.v:0;let inq=null;for(const q of W.gar){const d=dist(q.x,q.z,S.x,S.z);q.g.visible=d<650||W.stars>0;if(d<12.5)inq=q}
+if(inq&&W.stars>0){if(W.gcd>0){W.hz=null;W.hid=Math.max(0,W.hid-dt*2);if(W.gmsg<=0){W.gmsg=4;toast('🔒 সেফ হাউস এখন বন্ধ — '+bn(Math.ceil(W.gcd))+' সেকেন্ড পরে আসুন',2)}}
+else{W.hz=inq;W.hid+=dt;if(W.hid>=12){const fee=Math.min(Math.max(0,G.cash),500+W.stars*1500+Math.round(dmg*25));G.cash-=fee;W.hz=null;W.hid=0;W.ped=W.cop=W.dec=0;W.cc=99;setStars(0);clearAll();if(window.BPD)BPD.repair();W.gcd=45;toast('🏠 সেফ হাউস: পুলিশ আপনাকে হারিয়ে ফেলেছে, গাড়ি মেরামত — ফি '+money(fee),3.8)}}}
+else{W.hz=null;W.hid=Math.max(0,W.hid-dt*2);if(inq&&dmg>=10&&Math.abs(S.vf)<7&&W.gcd<=0){const fee=Math.min(Math.max(0,G.cash),500+Math.round(dmg*25));G.cash-=fee;if(window.BPD)BPD.repair();W.gcd=45;toast('🏠 সেফ হাউস: গাড়ি মেরামত হয়ে গেল — ফি '+money(fee),3)}}}
 /* ---------- সাইরেন ---------- */
 let ctx=null,osc=null,gn=null;
 function siren(near){if(near<=0){if(!ctx||!W.sOn)return;W.sOn=0}else W.sOn=1;try{if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;ctx=new C();osc=ctx.createOscillator();osc.type='sawtooth';gn=ctx.createGain();gn.gain.value=0;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1700;osc.connect(lp);lp.connect(gn);gn.connect(ctx.destination);osc.start()}
@@ -211,7 +229,7 @@ if(ctx.state==='suspended')ctx.resume();const t=ctx.currentTime,f=820+300*Math.s
 let pill=null,lastTxt='';
 function mkPill(){pill=document.createElement('div');pill.id='wn';pill.className='p';pill.style.cssText='right:8px;top:calc(var(--st) + 166px);font-size:13px;display:none;z-index:12;max-width:62vw;text-align:right';document.body.appendChild(pill)}
 function hudTick(){if(!pill)mkPill();if(!G.started||G.over||W.stars<=0){pill.style.display='none';lastTxt='';return}
-let t='🚨 '+'★'.repeat(W.stars)+'☆'.repeat(5-W.stars);if(W.bust>.2)t+=' · ⛓️ ধরা পড়ছেন '+bn(Math.min(100,Math.round(W.bust/(BT[W.stars]||4)*100)))+'%';else if(W.cc>10&&nearest()>75)t+=' · 🕶️ লুকিয়ে আছেন…';else t+=' · '+LV[W.stars];{let gd=1e9;if(W.gar)for(const q of W.gar){const d=dist(q.x,q.z,S.x,S.z);if(d<gd)gd=d}if(gd<1e9)t+=' · 🏠 '+(gd>=1000?bn((gd/1000).toFixed(1))+' কিমি':bn(Math.round(gd))+' মি')}
+let t='🚨 '+'★'.repeat(W.stars)+'☆'.repeat(5-W.stars);if(W.bust>.2)t+=' · ⛓️ ধরা পড়ছেন '+bn(Math.min(100,Math.round(W.bust/(BT[W.stars]||4)*100)))+'%';else if(W.cc>10&&nearest()>75)t+=' · 🕶️ লুকিয়ে আছেন…';else t+=' · '+LV[W.stars];if(W.hz)t='🚨 '+'★'.repeat(W.stars)+'☆'.repeat(5-W.stars)+' · 🏠 সেফ হাউসে লুকিয়ে আছেন — '+bn(Math.max(1,Math.ceil(12-W.hid)))+' সেকেন্ড';else{let gd=1e9;if(W.gar)for(const q of W.gar){const d=dist(q.x,q.z,S.x,S.z);if(d<gd)gd=d}if(gd<1e9)t+=' · 🏠 '+(gd>=1000?bn((gd/1000).toFixed(1))+' কিমি':bn(Math.round(gd))+' মি')}
 if(t!==lastTxt){lastTxt=t;pill.textContent=t;pill.style.color=W.stars>=4?'#ff6b6b':'#ffd166'}pill.style.display='block'}
 function mini(){const dmg=window.BPD?BPD.v:0;if(W.stars<=0&&dmg<20)return;if(!W.gar)return;const c=MC,ca=Math.cos(-S.h),sa=Math.sin(-S.h);c.save();c.translate(150,150);
 const P=(x,z)=>{const X=(x-S.x)*K,Y=(z-S.z)*K;let px=X*ca-Y*sa,py=X*sa+Y*ca;const r=Math.hypot(px,py),lim=132;if(r>lim){px*=lim/r;py*=lim/r}return[px,py]};
@@ -317,7 +335,7 @@ if(!shEl){const st=document.createElement('style');st.textContent=SHCSS;document
 const L=shNew?['বড় স্যার এসে গেছেন! পাকড়াও ওকে!','নতুন ফোর্স চলে এসেছে — ঘিরে ফেলো!']:['পাকড়াও ওকে!','ধরো! পালাতে দিয়ো না!','থামাও গাড়িটা!','ঘিরে ফেলো ওকে!'];shEl.innerHTML='<i>🚓</i><div><small>পুলিশ রেডিও · '+nm()+'</small><b>“'+L[Math.floor(Math.random()*L.length)]+'”</b></div>';
 shEl.classList.remove('on');void shEl.offsetWidth;shEl.classList.add('on');clearTimeout(shEl._t);shEl._t=setTimeout(()=>shEl.classList.remove('on'),2400)}
 const BT=[0,16,16,15,14,14];
-function bustCheck(dt){if(W.stars<=0){W.bust=0;return}let n=0;for(const u of W.units)if(u.kind!=='boat'&&u.dis<=0&&dist(u.x,u.z,S.x,S.z)<8.5)n++;
+function bustCheck(dt){if(W.stars<=0){W.bust=0;return}if(W.hz){W.bust=0;return}let n=0;for(const u of W.units)if(u.kind!=='boat'&&u.dis<=0&&dist(u.x,u.z,S.x,S.z)<8.5)n++;
 const nd=W.stars>=3?2:1,v=Math.abs(S.vf),T=BT[W.stars]||4;
 if(n>=nd&&v<2)W.bust+=dt*Math.min(1.4,1+.1*(n-nd));else if(n>=nd&&v<4){}else W.bust=Math.max(0,W.bust-dt*(v>6?3:1.5));
 if(W.bust>=T&&!BZ){const fine=100000*W.stars,w=LV[W.stars],stars=W.stars;G.loss+=fine;W.bust=0;
@@ -326,11 +344,11 @@ function tick(dt){if(!G.started||G.over){siren(0);return}if(W.stars>0&&typeof MO
 W.tk+=dt;garTick(dt);if(W.mp&&W.stars>0){for(const u of W.units.concat(W.rbu)){if(!W.mp.seen.has(u)&&W.mp.k.indexOf(u.kind)>=0){W.mp=null;try{sfxPlay(['masti'],1)}catch(e){}break}}}antiStuck(dt);const kmh=Math.abs(S.vf)*3.6;
 if(kmh>110){W.sp+=dt;if(W.sp>6){W.sp=-14;addHeat('speed');if(W.stars>0)toast('📸 অতিরিক্ত গতি — পুলিশ নজর রাখছে',2)}}else if(W.sp>0&&kmh<95)W.sp=Math.max(0,W.sp-dt);
 W.cc+=dt;
-if((W.ped||W.cop)&&W.cc>10){const nr=nearest(),rate=nr<75?.6:(nr>130?8:3.5);W.dec+=rate*dt;if(W.dec>=60){W.dec=0;dropStar()}}
+if((W.ped||W.cop)&&W.cc>14){const nr=nearest(),rate=nr<75?.5:(nr>130?5:2);W.dec+=rate*dt;if(W.dec>=60){W.dec=0;dropStar()}}
 const tg=need(W.stars);W.spT-=dt;
-if(W.stars>0){W.nx-=dt;W.arr=Math.max(0,(W.arr||0)-dt);if(!W.arr&&W.cc<8&&nearestGround()>110)W.nx=Math.min(W.nx,1.2);if(tg.heli&&!W.heli)spawn('heli');
+if(W.stars>0){W.nx-=dt;W.arr=Math.max(0,(W.arr||0)-dt);if(!W.arr&&W.cc<14&&nearestGround()>110)W.nx=Math.min(W.nx,1.2);if(tg.heli&&!W.heli)spawn('heli');
 if(W.nx<=0){let k=null;for(const q of UK)if(q!=='boat'&&W.units.filter(u=>u.kind===q).length<tg[q]){k=q;break}
-if(!k)W.nx=2;else{W.nx=SPI[W.stars]*(W.cc>12&&nearestGround()>110?2:1);W.alt=!W.alt;if(!(W.stars>=3&&W.alt&&!W.rbu.length&&roadblock()))spawn(k,Math.random()<.5)}}}
+if(!k)W.nx=2;else{W.nx=SPI[W.stars]*(W.cc>16&&nearestGround()>110?1.5:1);W.alt=!W.alt;if(!(W.stars>=3&&W.alt&&!W.rbu.length&&roadblock()))spawn(k,Math.random()<.5)}}}
 if(W.spT<=0){W.spT=1.1;if(tg.boat&&W.units.filter(u=>u.kind==='boat').length<tg.boat)spawn('boat');
 if(W.stars===0&&W.units.length){for(const u of W.units.slice())if(dist(u.x,u.z,S.x,S.z)>45)remove(u)}
 for(const k of UK){const l=W.units.filter(u=>u.kind===k);if(l.length>tg[k]){l.sort((a,b)=>dist(b.x,b.z,S.x,S.z)-dist(a.x,a.z,S.x,S.z));if(dist(l[0].x,l[0].z,S.x,S.z)>70)remove(l[0])}}
@@ -350,7 +368,7 @@ const px=H.x,pz=H.z;H.x+=(tx-H.x)*k;H.z+=(tz-H.z)*k;H.y+=(ty-H.y)*Math.min(1,dt*
 const vx=H.x-px,vz=H.z-pz;if(vx*vx+vz*vz>1e-6)H.h=Math.atan2(vx,vz);H.g.position.set(H.x,H.y+Math.sin(H.t*2)*.4,H.z);H.g.rotation.y=H.h;H.g.rotation.x+=((H.mode==='d'?.3:.06)-H.g.rotation.x)*Math.min(1,dt*4);H.rot.rotation.y+=dt*38;H.lm.color.setHex(f?0xff2020:0x300000);
 const dir=new THREE.Vector3(S.x-H.x,-H.g.position.y,S.z-H.z),len=dir.length();H.beam.position.copy(H.g.position);H.beam.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),dir.normalize());H.beam.scale.set(1,len,1)}
 bustCheck(dt);const ng=W.stars>0?nearestGround():1e9;siren(ng<100?Math.max(0,1-ng/100):0)}
-function cleanup(){W.mp=null;clearAll();W.flat=0;W.nx=0;W.arr=0;W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
+function cleanup(){W.mp=null;W.hz=null;W.hid=0;clearAll();W.flat=0;W.nx=0;W.arr=0;W.ped=W.cop=W.dec=0;W.stars=0;W.bust=0;siren(0);if(pill)pill.style.display='none'}
 function after(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){const r=o.apply(this,arguments);try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return r}}
 function before(name,fn){const o=window[name];if(typeof o!=='function')return;window[name]=function(){try{fn.apply(null,arguments)}catch(e){console.error('BPW',name,e)}return o.apply(this,arguments)}}
 after('crime',function(a,m,k){window.BPHK=k||'prop';window.BPHK_t=performance.now();if(typeof FXL!=='undefined'){const t=hitTex(hk(window.BPHK));for(const f of FXL)if(f.t<.05&&f.s.material.map!==t){f.s.material.map=t;f.s.material.needsUpdate=true}}addHeat(k||'prop')});after('gameTick',tick);after('hud',hudTick);after('drawMini',mini);before('endTrip',cleanup);
