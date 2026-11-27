@@ -18,6 +18,13 @@ window.BPMEDX=function(a,b,c,d,r){const cx=Math.floor(c/CS),cz=Math.floor(d/CS),
 window.BPRG=function(roads,minW){const g=new Map(),cs=60;roads.forEach((e,id)=>{if(e[0]<minW)return;const p=e[1];for(let i=0;i+3<p.length;i+=2){const dx=p[i+2]-p[i],dz=p[i+3]-p[i+1],L=Math.hypot(dx,dz);if(L<.01)continue;const s={id,w:e[0],x0:p[i],z0:p[i+1],x1:p[i+2],z1:p[i+3],tx:dx/L,tz:dz/L},n=Math.max(1,Math.ceil(L/30)),seen=new Set();
 for(let k=0;k<=n;k++){const x=p[i]+dx*k/n,z=p[i+1]+dz*k/n,key=Math.floor(x/cs)+','+Math.floor(z/cs);if(seen.has(key))continue;seen.add(key);let l=g.get(key);if(!l){l=[];g.set(key,l)}l.push(s)}}});
 return{g,cross(x,z,tx,tz,sid,m){m=m===undefined?9:m;const cx=Math.floor(x/cs),cz=Math.floor(z/cs);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l=g.get((cx+a)+','+(cz+b));if(l)for(const s of l){if(s.id===sid)continue;if(Math.abs(s.tx*tx+s.tz*tz)>.9)continue;const dx=s.x1-s.x0,dz=s.z1-s.z0,L2=dx*dx+dz*dz||1;let u=((x-s.x0)*dx+(z-s.z0)*dz)/L2;u=u<0?0:u>1?1:u;if(Math.hypot(s.x0+dx*u-x,s.z0+dz*u-z)<s.w/2+m)return true}}return false}}};
+/* zebra bands so every opening is easy to see */
+window.BPZEBRA=function(list){if(!list.length||typeof sc==='undefined'||typeof THREE==='undefined')return;
+if(!window.__ZT){const c=document.createElement('canvas');c.width=64;c.height=8;const x=c.getContext('2d');x.clearRect(0,0,64,8);x.fillStyle='#fff';x.fillRect(0,0,32,8);const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearFilter;window.__ZT=t}
+const P=[],U=[],Y=.16;for(const o of list){const tx=o.tx,tz=o.tz,nx=-tz,nz=tx,hw=o.w/2;for(const sg of[-1,1]){const cx=o.x+tx*8.5*sg,cz=o.z+tz*8.5*sg,a=[cx-tx*1.6-nx*hw,cz-tz*1.6-nz*hw],b=[cx-tx*1.6+nx*hw,cz-tz*1.6+nz*hw],c=[cx+tx*1.6+nx*hw,cz+tz*1.6+nz*hw],d=[cx+tx*1.6-nx*hw,cz+tz*1.6-nz*hw],u=o.w;
+P.push(a[0],Y,a[1],b[0],Y,b[1],c[0],Y,c[1],a[0],Y,a[1],c[0],Y,c[1],d[0],Y,d[1]);U.push(0,0,u,0,u,1,0,0,u,1,0,1)}}
+const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
+const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:window.__ZT,transparent:true,alphaTest:.5,side:THREE.DoubleSide,color:0xf2f2ee,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));m.frustumCulled=false;sc.add(m)};
 /* ---------- main ---------- */
 const K=(x,z)=>Math.round(x/1.2)+','+Math.round(z/1.2);
 function run(D){
@@ -61,9 +68,9 @@ const RG=window.BPRG(live.map(r=>[r.w,r.p]),6);const idOf=new Map();live.forEach
 const MM=window.BPMETRO&&window.BPMETRO.MW,MG2=new Map();if(MM){for(let i=0;i+3<MM.length;i+=2){const key=Math.floor(MM[i]/60)+','+Math.floor(MM[i+1]/60);let l=MG2.get(key);if(!l){l=[];MG2.set(key,l)}l.push([MM[i],MM[i+1],MM[i+2],MM[i+3]])}}
 const nearMetro=(x,z)=>{if(!MM)return false;const cx=Math.floor(x/60),cz=Math.floor(z/60);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l=MG2.get((cx+a)+','+(cz+b));if(l)for(const s of l)if(sd2(x,z,s)<196)return true}return false};
 /* 4. barrier runs, openings every ~200 m */
-const STEP=3,boxes=new Map();let nBox=0,nBrk=0,L0=0;
+const STEP=3,boxes=new Map(),caps=new Map(),zl=[];let nBox=0,nBrk=0,L0=0;
 const extra=[];
-for(const r of live){if(r.w<8)continue;const p=r.p,n=p.length/2;const cum=[0];for(let i=0;i+1<n;i++)cum.push(cum[i]+Math.hypot(p[i*2+2]-p[i*2],p[i*2+3]-p[i*2+1]));const Lt=cum[n-1];if(Lt<12)continue;
+for(const r of live){if(KM||r.w<16)continue;const p=r.p,n=p.length/2;const cum=[0];for(let i=0;i+1<n;i++)cum.push(cum[i]+Math.hypot(p[i*2+2]-p[i*2],p[i*2+3]-p[i*2+1]));const Lt=cum[n-1];if(Lt<12)continue;
 const ns=Math.max(2,Math.round(Lt/STEP)),st=Lt/ns,sid=idOf.get(r),X=new Float64Array(ns+1),Z=new Float64Array(ns+1),TX=new Float64Array(ns+1),TZ=new Float64Array(ns+1),gap=new Uint8Array(ns+1);
 let k=0;for(let j=0;j<=ns;j++){const s=j*st;while(k<n-2&&cum[k+1]<s)k++;const L=(cum[k+1]-cum[k])||1,f=Math.min(1,Math.max(0,(s-cum[k])/L)),dx=p[k*2+2]-p[k*2],dz=p[k*2+3]-p[k*2+1],l=Math.hypot(dx,dz)||1;X[j]=p[k*2]+dx*f;Z[j]=p[k*2+1]+dz*f;TX[j]=dx/l;TZ[j]=dz/l;gap[j]=(nearJ(X[j],Z[j])||RG.cross(X[j],Z[j],TX[j],TZ[j],sid)||nearMetro(X[j],Z[j]))?1:0}
 const runs=()=>{const o=[];let a=-1;for(let j=0;j<=ns+1;j++){const g=j>ns?1:gap[j];if(!g&&a<0)a=j;else if(g&&a>=0){o.push([a,j-1]);a=-1}}return o};
@@ -71,10 +78,10 @@ const brks=[];for(const[a,b]of runs()){const Lr=(b-a)*st;if(Lr<=170)continue;con
 const hw=Math.ceil(11/st);for(const jb of brks)for(let j=Math.max(0,jb-hw);j<=Math.min(ns,jb+hw);j++)gap[j]=1;
 /* cross stubs at the breaks + split the road there */
 const sp=[];for(const jb of brks){const bx=X[jb],bz=Z[jb],tx=TX[jb],tz=TZ[jb],nx=-tz,nz=tx;let A=r.w/2+5;if(inB(bx+nx*A,bz+nz*A)||inB(bx-nx*A,bz-nz*A))A=r.w/2+1;const sw=Math.max(7,Math.min(9,r.w*.6));
-extra.push({w:sw,p:[bx-nx*A,bz-nz*A,bx,bz,bx+nx*A,bz+nz*A],tail:r.tail.slice(),arr:1});aq(bx-nx*A,bz-nz*A,bx+nx*A,bz+nz*A,sw,AY);sp.push({s:jb*st,x:bx,z:bz});nBrk++}
+extra.push({w:sw,p:[bx-nx*A,bz-nz*A,bx,bz,bx+nx*A,bz+nz*A],tail:r.tail.slice(),arr:1});aq(bx-nx*A,bz-nz*A,bx+nx*A,bz+nz*A,sw,AY);sp.push({s:jb*st,x:bx,z:bz});zl.push({x:bx,z:bz,tx,tz,w:r.w});nBrk++}
 if(sp.length){sp.sort((a,b)=>a.s-b.s);const pcs=[];let cur=[p[0],p[1]],bi=0;for(let i=0;i+1<n;i++){while(bi<sp.length&&sp[bi].s<cum[i+1]-.05){if(sp[bi].s>cum[i]+.05){cur.push(sp[bi].x,sp[bi].z);pcs.push(cur);cur=[sp[bi].x,sp[bi].z]}bi++}cur.push(p[i*2+2],p[i*2+3])}pcs.push(cur);if(pcs.length>1){r.p=pcs[0];for(let q=1;q<pcs.length;q++)extra.push({w:r.w,p:pcs[q],tail:r.tail.slice(),arr:r.arr})}}
 /* barrier boxes */
-for(const[a,b]of runs()){if((b-a)*st<5)continue;let pieces=[];const sa=a*st,sb=b*st;let kk=0;while(kk<n-2&&cum[kk+1]<=sa)kk++;
+for(const[a,b]of runs()){if((b-a)*st<5)continue;for(const j of[a,b]){const ck=Math.floor(X[j]/240)+','+Math.floor(Z[j]/240);let l=caps.get(ck);if(!l){l=[];caps.set(ck,l)}l.push([X[j],Z[j],Math.atan2(-TZ[j],TX[j])])}let pieces=[];const sa=a*st,sb=b*st;let kk=0;while(kk<n-2&&cum[kk+1]<=sa)kk++;
 for(let i=kk;i+1<n&&cum[i]<sb;i++){const s0=Math.max(sa,cum[i]),s1=Math.min(sb,cum[i+1]);if(s1-s0<.5)continue;const L=cum[i+1]-cum[i]||1,dx=(p[i*2+2]-p[i*2])/L,dz=(p[i*2+3]-p[i*2+1])/L;pieces.push([p[i*2]+dx*(s0-cum[i]),p[i*2+1]+dz*(s0-cum[i]),p[i*2]+dx*(s1-cum[i]),p[i*2+1]+dz*(s1-cum[i])])}
 let cur=null;const flush=()=>{if(!cur)return;const L=Math.hypot(cur[2]-cur[0],cur[3]-cur[1]);if(L>=2){medAdd(cur);L0+=L;const mx=(cur[0]+cur[2])/2,mz=(cur[1]+cur[3])/2,ck=Math.floor(mx/240)+','+Math.floor(mz/240);let l=boxes.get(ck);if(!l){l=[];boxes.set(ck,l)}l.push([mx,mz,Math.atan2(-(cur[3]-cur[1]),cur[2]-cur[0]),L]);nBox++}cur=null};
 for(const pc of pieces){if(!cur){cur=pc.slice();continue}const d1x=cur[2]-cur[0],d1z=cur[3]-cur[1],d2x=pc[2]-pc[0],d2z=pc[3]-pc[1],l1=Math.hypot(d1x,d1z)||1,l2=Math.hypot(d2x,d2z)||1;if((d1x*d2x+d1z*d2z)/(l1*l2)>.99&&l1+l2<70&&Math.hypot(pc[0]-cur[2],pc[1]-cur[3])<.5){cur[2]=pc[2];cur[3]=pc[3]}else{flush();cur=pc.slice()}}flush()}}
@@ -88,6 +95,10 @@ const bg=(()=>{const pos=[],nor=[],col=[];const add=(cy,sy,sz,k)=>{const b=new T
 const mat=new THREE.MeshLambertMaterial({vertexColors:true}),M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),P=new THREE.Vector3(),Sc=new THREE.Vector3(),UP=new THREE.Vector3(0,1,0);
 for(const[k,l]of boxes){const im=new THREE.InstancedMesh(bg,mat,l.length);let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,ml=0;l.forEach((b,i)=>{Q.setFromAxisAngle(UP,b[2]);P.set(b[0],0,b[1]);Sc.set(b[3]+.05,1,1);M4.compose(P,Q,Sc);im.setMatrixAt(i,M4);x0=Math.min(x0,b[0]);x1=Math.max(x1,b[0]);z0=Math.min(z0,b[1]);z1=Math.max(z1,b[1]);ml=Math.max(ml,b[3])});
 im.instanceMatrix.needsUpdate=true;const g2=bg.clone();g2.boundingSphere=new THREE.Sphere(new THREE.Vector3((x0+x1)/2,0,(z0+z1)/2),Math.hypot(x1-x0,z1-z0)/2+ml/2+2);im.geometry=g2;sc.add(im)}}
+if(typeof sc!=='undefined'&&typeof THREE!=='undefined'&&caps.size){const pos=[],nor=[],col=[];const add=(cy,sy,k)=>{const b=new THREE.BoxGeometry(1.1,sy,1.1).toNonIndexed();b.translate(0,cy,0);const a=b.attributes.position.array,nn=b.attributes.normal.array;for(let i=0;i<a.length;i++){pos.push(a[i]);nor.push(nn[i])}for(let i=0;i<a.length/3;i++)col.push(k[0],k[1],k[2])};add(.5,1,[.95,.42,.05]);add(1.12,.25,[.97,.97,.97]);
+const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));cg.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));cg.setAttribute('color',new THREE.Float32BufferAttribute(col,3));const cmat=new THREE.MeshLambertMaterial({vertexColors:true}),M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),P=new THREE.Vector3(),Sc=new THREE.Vector3(1,1,1),UP=new THREE.Vector3(0,1,0);
+for(const[k,l]of caps){const im=new THREE.InstancedMesh(cg,cmat,l.length);let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;l.forEach((b,i)=>{Q.setFromAxisAngle(UP,b[2]);P.set(b[0],0,b[1]);M4.compose(P,Q,Sc);im.setMatrixAt(i,M4);x0=Math.min(x0,b[0]);x1=Math.max(x1,b[0]);z0=Math.min(z0,b[1]);z1=Math.max(z1,b[1])});im.instanceMatrix.needsUpdate=true;const g2=cg.clone();g2.boundingSphere=new THREE.Sphere(new THREE.Vector3((x0+x1)/2,0,(z0+z1)/2),Math.hypot(x1-x0,z1-z0)/2+4);im.geometry=g2;sc.add(im)}}
+window.BPZEBRA(zl);
 window.BPR2INFO={snapped:nSnap,capped:nCap,breaks:nBrk,boxes:nBox,barrierM:Math.round(L0),roads:D.r.length+D.x.length}}
 window.BPR2=function(A){try{run(A.D)}catch(e){console.error('BPR2',e)}};
 })();

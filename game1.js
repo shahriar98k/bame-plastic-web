@@ -1126,7 +1126,7 @@ else if(o.fill&&(d>20||full)){if(full)toast(bpk('fc'),3.4);o.fill=0}}}}
 
 /* what you drive: each vehicle has its own speed, weight, size, camera, passengers and fares */
 const PCFG={
-bus:{kind:'bus',n:'বাস',em:'🚌',models:['B','A'],top:22,acc:5.2,pullA:7.5,pullTop:30,drag:.0018,brk:9,steer:.55,ol:3.4,hw:1.3,co:2.8,cd:20,ch:12.5,la:17,ly:0,sr:9.2,ly2:1.5,cap:3,f0:.5,use:1,pm:40,p0:14,fare:30,cab:[.1,2.55,-.9],cabL:[.1,2.3,-30],mass:19.8,ex:[-.95,.55,3.95],bl:21,info:'৪০ যাত্রী · ধীরে চলে, ভারী'},
+bus:{kind:'bus',n:'বাস',em:'🚌',models:['B','A'],top:22,acc:5.2,pullA:7.5,pullTop:30,drag:.0018,brk:9,steer:.55,ol:3.4,hw:1.3,co:2.8,cd:22,ch:21,la:26,ly:0,sr:9.2,ly2:1.5,cap:3,f0:.5,use:1,pm:40,p0:14,fare:30,cab:[.1,2.55,-.9],cabL:[.1,2.3,-30],mass:19.8,ex:[-.95,.55,3.95],bl:21,info:'৪০ যাত্রী · ধীরে চলে, ভারী'},
 rick:{kind:'rick',n:'টেসলা প্রো',em:'🛺',models:['rick'],top:7.5,acc:2.4,pullA:3.6,pullTop:11,drag:.004,brk:5,steer:.8,ol:1.0,hw:.75,co:1.0,cd:5.2,ch:2.9,la:6,ly:1,sr:5.2,ly2:1,cap:3,f0:3,use:0,pm:2,p0:1,fare:60,cab:[0,1.75,.45],cabL:[0,1.4,-20],mass:3,ex:[0,.4,1.4],bl:9,info:'২ যাত্রী · তেল লাগে না, গলিতে ওস্তাদ'},
 auto:{kind:'auto',n:'টেসলা প্রো ম্যাক্স',em:'🔋',models:['auto'],top:13,acc:3.2,pullA:5,pullTop:18,drag:.0025,brk:7,steer:.75,ol:1.2,hw:.9,co:1.2,cd:5.8,ch:3.2,la:7,ly:1.1,sr:5.8,ly2:1.1,cap:3,f0:1.2,use:.4,pm:4,p0:1,fare:45,cab:[0,1.6,.4],cabL:[0,1.3,-20],mass:5,ex:[0,.4,1.7],bl:10,info:'৪ যাত্রী · শান্ত ও সস্তা'},
 cng:{kind:'cng',n:'সিএনজি',em:'🚖',models:['cng'],top:17,acc:3.8,pullA:6,pullTop:23,drag:.0022,brk:8,steer:.7,ol:1.3,hw:.95,co:1.3,cd:6,ch:3.4,la:8,ly:1.1,sr:6,ly2:1.2,cap:3,f0:1.5,use:.55,pm:6,p0:2,fare:40,cab:[0,1.7,.45],cabL:[0,1.4,-20],mass:6,ex:[0,.4,1.8],bl:11,info:'৬ যাত্রী · চটপটে মাঝারি'},
@@ -1545,7 +1545,7 @@ function seesMe(w){const x0=w.g.position.x,z0=w.g.position.z,dx=S.x-x0,dz=S.z-z0
 function startMob(){if(!G.started)return;if(window.BPW&&BPW.W&&BPW.W.stars>0)return;const wasOn=MOB>0;MOB=22;let n=0;const cand=WLK.filter(w=>w.placed&&!w.ch).map(w=>[Math.hypot(w.g.position.x-S.x,w.g.position.z-S.z),w]).filter(q=>q[0]<70&&seesMe(q[1])).sort((a,b)=>a[0]-b[0]);for(const q of cand){if(n>=10)break;q[1].ch=1;q[1].ci=n;q[1].bt=0;q[1].g.rotation.z=0;n++}if(n&&!wasOn)toast('😡 '+SLANG[Math.floor(Math.random()*SLANG.length)],2.4)}
 function turnY(g,t,dt,r){let d=t-g.rotation.y;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;g.rotation.y+=Math.max(-r*dt,Math.min(r*dt,d))}
 function freeMove(w,dt,tx2,tz2,maxSp,stop){const g=w.g,ex=tx2-g.position.x,ez=tz2-g.position.z,ed=Math.hypot(ex,ez)||1;const want=ed>stop?Math.min(maxSp,(ed-stop)*2.6+.4):0;w.vs=w.vs||0;w.vs+=(want-w.vs)*Math.min(1,(want>w.vs?4.5:8)*dt);
-if(ed>.25)turnY(g,Math.atan2(ex,ez),dt,w.vs>3?7:11);const fx=Math.sin(g.rotation.y),fz=Math.cos(g.rotation.y);g.position.x+=fx*w.vs*dt;g.position.z+=fz*w.vs*dt;
+if(ed>.25)turnY(g,Math.atan2(ex,ez),dt,w.vs>3?7:11);const fx=Math.sin(g.rotation.y),fz=Math.cos(g.rotation.y);const o0x=g.position.x,o0z=g.position.z;g.position.x+=fx*w.vs*dt;g.position.z+=fz*w.vs*dt;if(window.BPMEDX&&BPMEDX(o0x,o0z,g.position.x,g.position.z,.35)){g.position.x=o0x;g.position.z=o0z;w.vs=0}
 w.ph+=dt*(w.vs>.15?(1.4+w.vs*2.15):0);const run=Math.min(1,w.vs/5);g.position.y=w.vs>.3?Math.abs(Math.cos(w.ph))*(.01+.05*run):0;
 V6.animH(g,w.ph,w.vs<.15?0:(w.vs<2.4?1:1+run*1.3));return ed}
 
@@ -1579,7 +1579,7 @@ if(Math.random()<dt*.25&&MOB>0&&d<40&&!w.yl&&!slow){w.yl=1;setTimeout(()=>{w.yl=
 else{const len=CUM[w.ri][CUM[w.ri].length-1];w.s+=w.dir*w.sp*dt;if(w.s<0){w.s=0;w.dir=1}else if(w.s>len){w.s=len;w.dir=-1}
 const a=at(w.ri,w.s),tx=a[2],tz=a[3];let vx=tx*w.dir,vz=tz*w.dir;
 if(w.cross!==null){const dl=w.cross-w.lat,st=1.5*dt,sg=Math.sign(dl);if(Math.abs(dl)<=st){w.lat=w.cross;w.cross=null;w.sd=Math.sign(w.lat)||1}else w.lat+=sg*st;vx=-tz*sg+tx*w.dir*.25;vz=tx*sg+tz*w.dir*.25}
-else if(Math.random()<dt*.04&&RD[w.ri][0]>=6){const hw=RD[w.ri][0]/2+.9;w.cross=-Math.sign(w.lat||1)*(hw+Math.random()*.9)}
+else if(Math.random()<dt*.04&&RD[w.ri][0]>=6&&!(window.BPMEDN&&BPMEDN(a[0],a[1],22))){const hw=RD[w.ri][0]/2+.9;w.cross=-Math.sign(w.lat||1)*(hw+Math.random()*.9)}
 x=a[0]-tz*w.lat;z=a[1]+tx*w.lat;w.ph+=dt*6*w.sp;w.g.position.set(x,Math.abs(Math.cos(w.ph))*.02,z);turnY(w.g,Math.atan2(vx,vz),dt,6);V6.animH(w.g,w.ph,1);
 const ddx=x-S.x,ddz=z-S.z;if(ddx*ddx+ddz*ddz>500*500){if(placeNear(w,150,380))setLat(w);continue}}
 if(pedCd<=0&&G.started&&Math.abs(S.vf)>1){const dx=x-S.x,dz=z-S.z,lat=dx*Math.cos(S.h)+dz*Math.sin(S.h),lon=dx*Math.sin(S.h)-dz*Math.cos(S.h);if(Math.abs(lat)<PV.hw+.26&&Math.abs(lon)<PV.ol+.28){const spd=Math.abs(S.vf);if(LNCH[PKIND]&&spd>=LNCH_MIN){pedLaunch(w,spd,x,z)}else{w.hold=2.6;w.fl=0}pedCd=w.ch?.45:1.2;if(!w.ch)S.vf*=.6;pedSnd(w.fem);crime(50000,'🚶 পথচারীকে ধাক্কা! ছিটকে পড়ল','ped');panic(x,z)}}}

@@ -189,7 +189,7 @@ function breaks(A){
   const p1=vi>=0?p.slice(0,vi*2+2):p.slice(0,i+2).concat([bx,bz]),p2=vi>=0?p.slice(vi*2):[bx,bz].concat(p.slice(i+2));
   const e1=[e[0],p1].concat(e.slice(2)),e2=[e[0],p2].concat(e.slice(2)),k=arr.indexOf(e);if(k<0)return null;arr[k]=e1;arr.push(e2);
   const ci=cand.findIndex(c=>c[1]===e);cand.splice(ci,1,[arr,e1],[arr,e2]);return[bx,bz]};
- const brk=[];
+ const brk=[],zl=[];
  for(let t=200;t<TL-60;t+=200){let got=null;
   for(const o of[0,6,-6,12,-12,18,-18,24,-24,30,-30,36,-36,42,-42]){const d=t+o;if(d<30||d>TL-30)continue;const q=ptAt(d);
    if(!(BS[q.s]&&BS[q.s+1]))continue;if(pilNear(q.x,q.z)<16)continue;
@@ -203,15 +203,18 @@ function breaks(A){
   /* opening in the median island, with stop lines */
   quad([bx-tx*9.5,bz-tz*9.5],[bx+tx*9.5,bz+tz*9.5],6.4,.42,[.22,.23,.25]);
   for(const sgn of[-1,1]){const cx=bx+tx*9*sgn,cz=bz+tz*9*sgn;quad([cx-nx*3.1,cz-nz*3.1],[cx+nx*3.1,cz+nz*3.1],.35,.44,[.95,.95,.95])}
-  brk.push({x:bx,z:bz,d:got.d})}
+  brk.push({x:bx,z:bz,d:got.d});zl.push({x:bx,z:bz,tx,tz,w:Math.min(24,got.h.e[0])})}
  /* barrier between the two carriageways, with a gap at every break */
  window.BPMETRO={MW};const RGX=window.BPRG?window.BPRG(D.r.concat(D.x),6):null;
- const M=new Mesher(),gx=new THREE.BoxGeometry(1,1,1);let segs=0;
+ const M=new Mesher(),gx=new THREE.BoxGeometry(1,1,1),ks={};let segs=0;
  for(let k=0;k<nS;k++){if(!(BS[k]&&BS[k+1]))continue;const dm=(CU[k]+CU[k+1])/2;let gap=false;for(const b of brk)if(Math.abs(dm-b.d)<11){gap=true;break}if(gap)continue;
   const x0=MW[k*2],z0=MW[k*2+1],x1=MW[k*2+2],z1=MW[k*2+3],L=Math.hypot(x1-x0,z1-z0);if(L<1)continue;if(RGX&&RGX.cross((x0+x1)/2,(z0+z1)/2,(x1-x0)/L,(z1-z0)/L,-1,9))continue;
   const ry=Math.atan2(-(z1-z0),x1-x0),mx=(x0+x1)/2,mz=(z0+z1)/2;
   M.geo(gx,mx,.45,mz,L+.05,.9,.5,[.74,.74,.72],ry);M.geo(gx,mx,.95,mz,L+.05,.1,.34,[.92,.8,.1],ry);
-  medAdd([x0,z0,x1,z1]);segs++}
+  medAdd([x0,z0,x1,z1]);ks[k]=[x0,z0,x1,z1,ry];segs++}
+ const capAt=(x,z,ry)=>{M.geo(gx,x,.6,z,1.1,1.2,1.1,[.95,.42,.05],ry);M.geo(gx,x,1.25,z,1.12,.25,1.12,[.97,.97,.97],ry)};
+ for(const k in ks){const q=ks[k],i=+k;if(!ks[i-1])capAt(q[0],q[1],q[4]);if(!ks[i+1])capAt(q[2],q[3],q[4])}
+ if(window.BPZEBRA)window.BPZEBRA(zl);
  if(segs&&typeof sc!=='undefined')sc.add(M.mesh());
  window.METROBRK={count:brk.length,segments:segs,list:brk.map(b=>[Math.round(b.x),Math.round(b.z),Math.round(b.d)])}}
 
