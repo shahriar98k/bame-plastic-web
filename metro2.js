@@ -175,11 +175,7 @@ function murals(){
  window.METROART={tiles:NT,faces:nF}}
 
 /* ---------- median barrier + breaks every ~200 m ---------- */
-const MEDG=new Map();
-function medAdd(s){const x0=Math.min(s[0],s[2])-.7,x1=Math.max(s[0],s[2])+.7,z0=Math.min(s[1],s[3])-.7,z1=Math.max(s[1],s[3])+.7;
- for(let cx=Math.floor(x0/16);cx<=Math.floor(x1/16);cx++)for(let cz=Math.floor(z0/16);cz<=Math.floor(z1/16);cz++){const k=cx*100000+cz;let l=MEDG.get(k);if(!l){l=[];MEDG.set(k,l)}l.push(s)}}
-window.BPMED=function(x,z){const l=MEDG.get(Math.floor(x/16)*100000+Math.floor(z/16));if(!l)return 0;
- for(const s of l){const dx=s[2]-s[0],dz=s[3]-s[1],L2=dx*dx+dz*dz||1;let u=((x-s[0])*dx+(z-s[1])*dz)/L2;u=u<0?0:u>1?1:u;const ex=s[0]+dx*u-x,ez=s[1]+dz*u-z;if(ex*ex+ez*ez<.36)return 1}return 0};
+const medAdd=s=>window.BPMEDADD&&window.BPMEDADD(s);
 
 function breaks(A){
  const {D,MW,CU,TL,PIL,quad,Mesher}=A,BS=A.BS||[],nS=MW.length/2-1;
@@ -209,9 +205,10 @@ function breaks(A){
   for(const sgn of[-1,1]){const cx=bx+tx*9*sgn,cz=bz+tz*9*sgn;quad([cx-nx*3.1,cz-nz*3.1],[cx+nx*3.1,cz+nz*3.1],.35,.44,[.95,.95,.95])}
   brk.push({x:bx,z:bz,d:got.d})}
  /* barrier between the two carriageways, with a gap at every break */
+ window.BPMETRO={MW};const RGX=window.BPRG?window.BPRG(D.r.concat(D.x),6):null;
  const M=new Mesher(),gx=new THREE.BoxGeometry(1,1,1);let segs=0;
  for(let k=0;k<nS;k++){if(!(BS[k]&&BS[k+1]))continue;const dm=(CU[k]+CU[k+1])/2;let gap=false;for(const b of brk)if(Math.abs(dm-b.d)<11){gap=true;break}if(gap)continue;
-  const x0=MW[k*2],z0=MW[k*2+1],x1=MW[k*2+2],z1=MW[k*2+3],L=Math.hypot(x1-x0,z1-z0);if(L<1)continue;
+  const x0=MW[k*2],z0=MW[k*2+1],x1=MW[k*2+2],z1=MW[k*2+3],L=Math.hypot(x1-x0,z1-z0);if(L<1)continue;if(RGX&&RGX.cross((x0+x1)/2,(z0+z1)/2,(x1-x0)/L,(z1-z0)/L,-1,9))continue;
   const ry=Math.atan2(-(z1-z0),x1-x0),mx=(x0+x1)/2,mz=(z0+z1)/2;
   M.geo(gx,mx,.45,mz,L+.05,.9,.5,[.74,.74,.72],ry);M.geo(gx,mx,.95,mz,L+.05,.1,.34,[.92,.8,.1],ry);
   medAdd([x0,z0,x1,z1]);segs++}

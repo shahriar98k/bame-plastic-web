@@ -77,7 +77,7 @@ const MULT={rick:.7,auto:.85,cng:1,car:1.4,bike:.9,cycle:.6,mtb:.6},PAXOK=['rick
 
 /* ---------- road points (built once) ---------- */
 let PTS=null;
-function pts(){if(PTS)return PTS;PTS=[];RD.forEach((r,ri)=>{if(r[0]<6)return;const c=CUM[ri];if(!c)return;const len=c[c.length-1];for(let s=20;s<len-20;s+=70){const a=at(ri,s);if(KM&&kElev(a[0],a[1])>.25)continue;PTS.push([a[0],a[1],a[2],a[3],ri,r[0]])}});return PTS}
+function pts(){if(PTS)return PTS;PTS=[];RD.forEach((r,ri)=>{if(r[0]<6)return;const c=CUM[ri];if(!c)return;const len=c[c.length-1];for(let s=20;s<len-20;s+=70){const a=at(ri,s);if(KM&&kElev(a[0],a[1])>.25)continue;if(window.BPMEDN&&BPMEDN(a[0],a[1],3))continue;PTS.push([a[0],a[1],a[2],a[3],ri,r[0]])}});return PTS}
 function ring(cx,cz,mn,mx,fx,fz){const P=pts(),out=[];for(const p of P){const d=dist(p[0],p[1],cx,cz);if(d<mn||d>mx)continue;let w=1;if(fx!==undefined){const dot=((p[0]-cx)*fx+(p[1]-cz)*fz)/(d||1);w=.4+Math.max(0,dot+.4)}out.push([p,w])}return out}
 function weighted(list){let t=0;for(const e of list)t+=e[1];if(!list.length)return null;let r=Math.random()*t;for(const e of list){r-=e[1];if(r<=0)return e[0]}return list[list.length-1][0]}
 function nearestPt(x,z,maxD){let b=null,bd=maxD;for(const p of pts()){const d=dist(p[0],p[1],x,z);if(d<bd){bd=d;b=p}}return b}

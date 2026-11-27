@@ -26,8 +26,9 @@ function plane(f,lx,ly,lz,w,h,tex,rot,tr){const m=new THREE.Mesh(new THREE.Plane
 function cv(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);return t}
 const flagTex=()=>cv(256,154,(x,w,h)=>{x.fillStyle='#006a4e';x.fillRect(0,0,w,h);x.fillStyle='#f42a41';x.beginPath();x.arc(w*.45,h/2,h*.3,0,6.2832);x.fill()});
 const pole=(f,lx,y0,lz,h)=>{cyl(f,lx,y0,lz,.28,.28,h,'#9a9a9a',6);plane(f,lx+4.7,y0+h-3,lz,9.4,5.6,flagTex(),0)};
-const palm=(f,lx,y0,lz)=>{cyl(f,lx,y0,lz,.4,.3,8,'#6b4a2b',6);cyl(f,lx,y0+6,lz,4.4,0,6.5,'#2f7d32',7);cyl(f,lx,y0+9,lz,3.2,0,5.5,'#3f8f3a',7)};
-const tree=(f,lx,y0,lz)=>{cyl(f,lx,y0,lz,.4,.35,5,'#6b4a2b',6);cyl(f,lx,y0+3.5,lz,3.6,0,6,'#2f7d32',7)};
+const onRd=(f,lx,lz)=>{if(typeof RD==='undefined')return false;const c=W3(f,lx,0,lz),x=c[0],z=c[2];for(const r of RD){const p=r[1],m=r[0]/2+4;for(let i=0;i+3<p.length;i+=2){const ax=p[i],az=p[i+1],bx=p[i+2],bz=p[i+3];if(x<Math.min(ax,bx)-m||x>Math.max(ax,bx)+m||z<Math.min(az,bz)-m||z>Math.max(az,bz)+m)continue;const dx=bx-ax,dz=bz-az,L=dx*dx+dz*dz||1,u=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/L));if(Math.hypot(x-ax-u*dx,z-az-u*dz)<m)return true}}return false};
+const palm=(f,lx,y0,lz)=>{if(onRd(f,lx,lz))return;cyl(f,lx,y0,lz,.4,.3,8,'#6b4a2b',6);cyl(f,lx,y0+6,lz,4.4,0,6.5,'#2f7d32',7);cyl(f,lx,y0+9,lz,3.2,0,5.5,'#3f8f3a',7)};
+const tree=(f,lx,y0,lz)=>{if(onRd(f,lx,lz))return;cyl(f,lx,y0,lz,.4,.35,5,'#6b4a2b',6);cyl(f,lx,y0+3.5,lz,3.6,0,6,'#2f7d32',7)};
 
 /* ---------- জাতীয় সংসদ ভবন (মানিক মিয়া এভিনিউর পাশে, ফার্মগেট–বিজয় সরণির মাঝে) ---------- */
 function sangsad(){const f={x:-2420,z:-3340,a:Math.PI/2},CON='#bdbab1',CON2='#c9c6bd',BAND='#ecebe4',BRK='#8d3c2f',BRK2='#98462f',DK='#2b2e33',Y0=6.6;
